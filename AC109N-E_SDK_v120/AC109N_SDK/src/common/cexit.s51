@@ -1,0 +1,211 @@
+/**************************************************
+ *
+ * System termination code for the 8051 IAR Systems C/EC++ Compiler.
+ *
+ * Copyright 2004-2005 IAR Systems. All rights reserved.
+ *
+ * $Revision: 1.6 $
+ *
+ **************************************************/
+
+;
+; Naming covention of labels in this file:
+;
+;  ?xxx	  - External labels only accessed from assembler.
+;  __xxx  - External labels accessed from or defined in C.
+;  xxx	  - Labels local to one module (note: this file contains 
+;           several modules).
+;  main	  - The starting point of the user program.
+;
+
+#define XRSEGCSTART RSEG CSTART:CODE:NOROOT
+#include "iar_common.s"
+
+	EXTERNS_FOR_ALL_DPTR_SYMBOLS()
+
+#if (defined(__DLIB_BUILD__) )
+
+
+//------------------------------------------------------------------------
+//
+// DLIB exit sequence
+//
+
+// ---------------------------------------------------------
+// The exit system
+//
+// The default exit function, written in C, calls _exit provided
+// below.  This function performs system cleanup and calls __exit that
+// halts the system.
+//
+
+// -----------------------------------------------
+// _exit -- Perform system cleanup and jump to __exit.
+//
+// The module below contains a number of segment parts that is
+// included in the final application only if they are needed.
+//
+
+        XRSEGCSTART
+        MODULE    ?cexit
+        PUBLIC    _exit
+        FUNCTION  _exit,0203H
+        EXTERN    __exit
+        REQUIRE   __exit
+        REQUIRE   ?exit_br_xxexit
+
+_exit:
+
+// -------------------------------------
+// Segment part included if the argument to exit must be saved and
+// later restored.
+
+        XRSEGCSTART
+        REQUIRE ?exit_restore
+
+?exit_save:
+        MOV     A,R2
+        MOV     R6,A
+        MOV     A,R3
+        MOV     R7,A
+
+
+// -------------------------------------
+// Segment part included if destructors must be called.
+
+        XRSEGCSTART
+        PUBLIC  __cstart_call_dtors
+        EXTERN  __call_dtors
+        REQUIRE ?exit_save
+
+        // This label is required by "__record_needed_destruction".
+
+__cstart_call_dtors:
+  #if (__CODE_MODEL__ == __CM_BANKED__)
+        EXTERN  ?BCALL
+
+        MOV     DPL,#low(__call_dtors)
+        MOV     DPH,#high(__call_dtors)
+    #ifdef __EXTENDED_DPTR__
+        MOV     ?DPX,#0
+    #endif
+        MOV     A,#BYTE3(__call_dtors)
+	LCALL   ?BCALL
+  #elif (__CORE__ == __CORE_EXTENDED2__ )
+	EXTERN ?MEX1
+	MOV ?MEX1, #BYTE3(__call_dtors)
+	LCALL   __call_dtors & 0xFFFF 
+  #else
+        LCALL   __call_dtors
+  #endif
+
+
+// -------------------------------------
+// Segment part included if DLib standard IO is used.
+
+
+        XRSEGCSTART
+        PUBLIC  __cstart_closeall
+        REQUIRE ?exit_save
+
+        // This label is required by DLib.
+
+__cstart_closeall:
+        EXTERN  _Close_all
+  #if (__CODE_MODEL__ == __CM_BANKED__)
+        EXTERN  ?BCALL
+
+        MOV     DPL,#low(_Close_all)
+        MOV     DPH,#high(_Close_all)
+    #ifdef __EXTENDED_DPTR__
+        MOV     ?DPX,#0
+    #endif
+        MOV     A,#BYTE3(_Close_all)
+	LCALL   ?BCALL
+  #else
+        LCALL   _Close_all
+  #endif
+
+
+// -------------------------------------
+// Restore the argument previously stored by the "save" section above.
+
+        XRSEGCSTART
+
+?exit_restore:
+        MOV     A,R6
+        MOV     R2,A
+        MOV     A,R7
+        MOV     R3,A
+
+
+        XRSEGCSTART
+
+        // Jump to __exit.
+?exit_br_xxexit:
+
+  #if (__CODE_MODEL__ == __CM_BANKED__)
+        EXTERN  ?BCALL
+
+        MOV     DPL,#low(__exit)
+        MOV     DPH,#high(__exit)
+    #ifdef __EXTENDED_DPTR__
+        MOV     ?DPX,#0
+    #endif
+        MOV     A,#BYTE3(__exit)
+	LCALL   ?BCALL
+  #elif (__CORE__ == __CORE_EXTENDED2__ )
+	EXTERN ?MEX1
+	MOV ?MEX1, #BYTE3(__exit)
+	LJMP     __exit & 0xFFFF // __exit will not return
+  #else
+        LJMP     __exit          // __exit will not return
+  #endif
+
+  #if ( __CODE_MODEL__ == __CM_BANKED__)
+	RSEG BANK_RELAYS:CODE:REORDER:NOROOT(0)
+??_exit?relay:
+        EXTERN  ?BDISPATCH
+        LCALL   ?BDISPATCH
+        DATA
+        DC24    _exit
+  #endif
+
+	ENDMOD
+
+	END
+
+
+#else // __CLIB_BUILD__
+
+
+//------------------------------------------------------------------------
+//
+// CLIB exit(int code)
+//
+//------------------------------------------------------------------------
+
+        MODULE   ?cexit
+
+	PUBLIC   exit
+	PUBLIC   ?C_EXIT
+        XRSEGCSTART
+	FUNCTION exit,0203H
+
+exit:
+?C_EXIT:
+	PUBLIC  ?ROM_MONITOR_NOPS
+
+?ROM_MONITOR_NOPS:
+	NOP                     ; Three NOPs for ROM-Monitor breaks.
+	NOP
+	NOP
+
+	SJMP    ?C_EXIT
+	
+        ENDMOD
+
+        END
+
+
+#endif

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Workspace>
+  <ConfigDictionary>
+    
+  <CurrentConfigs><Project>SDK_AC10NN/Release</Project></CurrentConfigs></ConfigDictionary>
+  <Desktop>
+    <Static>
+      <Workspace>
+        <ColumnWidths>
+          
+          
+          
+          
+        <Column0>274</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
+      </Workspace>
+      <Build>
+        
+        
+        
+        
+      <ColumnWidth0>23</ColumnWidth0><ColumnWidth1>950</ColumnWidth1><ColumnWidth2>253</ColumnWidth2><ColumnWidth3>63</ColumnWidth3></Build>
+      <Find-in-Files>
+        
+        
+        
+      <ColumnWidth0>457</ColumnWidth0><ColumnWidth1>65</ColumnWidth1><ColumnWidth2>784</ColumnWidth2></Find-in-Files>
+    </Static>
+    <Windows>
+      
+      
+    <Wnd0>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-20727-4153</Identity>
+            <TabName>Workspace</TabName>
+            <Factory>Workspace</Factory>
+            <Session>
+              
+            <NodeDict><ExpandedNode>SDK_AC10NN</ExpandedNode><ExpandedNode>SDK_AC10NN/DAC</ExpandedNode><ExpandedNode>SDK_AC10NN/IIC</ExpandedNode><ExpandedNode>SDK_AC10NN/RTC</ExpandedNode><ExpandedNode>SDK_AC10NN/SPI</ExpandedNode><ExpandedNode>SDK_AC10NN/UI</ExpandedNode><ExpandedNode>SDK_AC10NN/USB_Device</ExpandedNode><ExpandedNode>SDK_AC10NN/common</ExpandedNode><ExpandedNode>SDK_AC10NN/fm</ExpandedNode><ExpandedNode>SDK_AC10NN/key msg</ExpandedNode><ExpandedNode>SDK_AC10NN/line in</ExpandedNode><ExpandedNode>SDK_AC10NN/music</ExpandedNode></NodeDict></Session>
+          </Tab>
+        </Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd0><Wnd1>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-8933-4170</Identity>
+            <TabName>Build</TabName>
+            <Factory>Build</Factory>
+            <Session/>
+          </Tab>
+          <Tab>
+            <Identity>TabID-17947-9937</Identity>
+            <TabName>Find in Files</TabName>
+            <Factory>Find-in-Files</Factory>
+            <Session/>
+          </Tab>
+        </Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd1></Windows>
+    <Editor>
+      
+      
+      
+      
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\SDK_AC10NN\src\main.c</Filename><XPos>0</XPos><YPos>266</YPos><SelStart>6649</SelStart><SelEnd>6649</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\SDK_AC10NN\Release\List\app.map</Filename><XPos>0</XPos><YPos>2843</YPos><SelStart>1004</SelStart><SelEnd>1004</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\SDK_AC10NN\src\common\config.h</Filename><XPos>0</XPos><YPos>76</YPos><SelStart>3197</SelStart><SelEnd>3197</SelEnd></Tab><ActiveTab>2</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\SDK_AC10NN\src\common\cd002.s51</Filename><XPos>0</XPos><YPos>15</YPos><SelStart>500</SelStart><SelEnd>521</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Positions>
+      
+      
+      
+      
+      
+    <Top><Row0><Sizes><Toolbar-003be920><key>iaridepm1</key></Toolbar-003be920></Sizes></Row0></Top><Left><Row0><Sizes><Wnd0><Rect><Top>-2</Top><Left>-2</Left><Bottom>778</Bottom><Right>365</Right><x>-2</x><y>-2</y><xscreen>217</xscreen><yscreen>199</yscreen><sizeHorzCX>0</sizeHorzCX><sizeHorzCY>0</sizeHorzCY><sizeVertCX>0</sizeVertCX><sizeVertCY>0</sizeVertCY></Rect></Wnd0></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd1><Rect><Top>-2</Top><Left>-2</Left><Bottom>161</Bottom><Right>1352</Right><x>-2</x><y>-2</y><xscreen>1354</xscreen><yscreen>163</yscreen><sizeHorzCX>0</sizeHorzCX><sizeHorzCY>0</sizeHorzCY><sizeVertCX>0</sizeVertCX><sizeVertCY>0</sizeVertCY></Rect></Wnd1></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+  </Desktop>
+</Workspace>
+
+

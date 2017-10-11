@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Workspace>
+  <ConfigDictionary>
+    
+  <CurrentConfigs><Project>test_maskrom/Release</Project></CurrentConfigs></ConfigDictionary>
+  <Desktop>
+    <Static>
+      <Workspace>
+        <ColumnWidths>
+          
+          
+          
+          
+        <Column0>245</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
+      </Workspace>
+      <Build>
+        
+        
+        
+        
+      <ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1215</ColumnWidth1><ColumnWidth2>324</ColumnWidth2><ColumnWidth3>81</ColumnWidth3></Build>
+    <Find-in-Files><ColumnWidth0>457</ColumnWidth0><ColumnWidth1>65</ColumnWidth1><ColumnWidth2>784</ColumnWidth2></Find-in-Files></Static>
+    <Windows>
+      
+      
+    <Wnd0>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-12254-4036</Identity>
+            <TabName>Workspace</TabName>
+            <Factory>Workspace</Factory>
+            <Session>
+              
+            <NodeDict><ExpandedNode>test_maskrom</ExpandedNode><ExpandedNode>test_maskrom/DAC</ExpandedNode><ExpandedNode>test_maskrom/IIC</ExpandedNode><ExpandedNode>test_maskrom/Output</ExpandedNode><ExpandedNode>test_maskrom/RTC</ExpandedNode><ExpandedNode>test_maskrom/SPI</ExpandedNode><ExpandedNode>test_maskrom/UI</ExpandedNode><ExpandedNode>test_maskrom/USB_Device</ExpandedNode><ExpandedNode>test_maskrom/clock.c</ExpandedNode><ExpandedNode>test_maskrom/common</ExpandedNode><ExpandedNode>test_maskrom/fm</ExpandedNode><ExpandedNode>test_maskrom/key msg</ExpandedNode><ExpandedNode>test_maskrom/line in</ExpandedNode><ExpandedNode>test_maskrom/music</ExpandedNode></NodeDict></Session>
+          </Tab>
+        </Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd0><Wnd1>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-29820-5754</Identity>
+            <TabName>Build</TabName>
+            <Factory>Build</Factory>
+            <Session/>
+          </Tab>
+        <Tab><Identity>TabID-5573-28037</Identity><TabName>Find in Files</TabName><Factory>Find-in-Files</Factory><Session/></Tab></Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd1></Windows>
+    <Editor>
+      
+      
+      
+      
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\test_maskrom\src\main.c</Filename><XPos>0</XPos><YPos>295</YPos><SelStart>7114</SelStart><SelEnd>7114</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\test_maskrom\src\clock.c</Filename><XPos>0</XPos><YPos>261</YPos><SelStart>1051</SelStart><SelEnd>1062</SelEnd></Tab><ActiveTab>1</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\test_maskrom\src\clock.h</Filename><XPos>0</XPos><YPos>24</YPos><SelStart>1114</SelStart><SelEnd>1114</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>D:\SVN\trunk\CD002\CD002_SDKv100_beta\test_maskrom\src\DAC\dac.c</Filename><XPos>0</XPos><YPos>483</YPos><SelStart>10864</SelStart><SelEnd>10864</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Positions>
+      
+      
+      
+      
+      
+    <Top><Row0><Sizes><Toolbar-003be918><key>iaridepm1</key></Toolbar-003be918></Sizes></Row0></Top><Left><Row0><Sizes><Wnd0><Rect><Top>-2</Top><Left>-2</Left><Bottom>707</Bottom><Right>336</Right><x>-2</x><y>-2</y><xscreen>0</xscreen><yscreen>0</yscreen><sizeHorzCX>0</sizeHorzCX><sizeHorzCY>0</sizeHorzCY><sizeVertCX>254326</sizeVertCX><sizeVertCY>720528</sizeVertCY></Rect></Wnd0></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd1><Rect><Top>-2</Top><Left>-2</Left><Bottom>232</Bottom><Right>1331</Right><x>-2</x><y>-2</y><xscreen>1333</xscreen><yscreen>234</yscreen><sizeHorzCX>1003009</sizeHorzCX><sizeHorzCY>237804</sizeHorzCY><sizeVertCX>0</sizeVertCX><sizeVertCY>0</sizeVertCY></Rect></Wnd1></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+  </Desktop>
+</Workspace>
+
+

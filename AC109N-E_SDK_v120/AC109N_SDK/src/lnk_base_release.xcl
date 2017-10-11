@@ -1,0 +1,272 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// This is a XLINK command file.
+//
+//
+//   Revision control system
+//       $Id: lnk_base.xcl 1.99 2006/05/02 09:39:07Z owi ADx_patch $
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// OTP data:                0-0xFF                      256Bytes
+// ESP:                     0x800-0x8FF                 256Bytes
+// OTP xdata2:              0x900-0x144F                2.5KBytes
+// DECODE BUF:              0x1850-0x1FFF               2048-80 Bytes
+// 除MP3格式解码外，其它任何时候，DECODE_BUF只能使用0x1850-0x1BFF，1K-80空间，另外1K用于代码调试
+////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Variables (used by lnk_base.xcl)
+// ================================
+//
+// Segment limits
+// --------------
+//
+//
+//    DATA
+//
+-D_DATA_START=0x30
+-D_DATA_END=0x7F 
+//
+//    IDATA
+//
+-D_IDATA_START=0x80
+-D_IDATA_END=0xFF              // Last address of Idata memory (0xFF for 8052 and 0x7F for 8051)
+//
+//
+//    PDATA
+//
+-D_PDATA_START=0x0001          // First address for PDATA memory.
+-D_PDATA_END=0x00FF            // Last address for PDATA memory.
+//
+//
+//    XDATA
+//
+-D_XDATA_START=0x000980        // First address of xdata memory.
+-D_XDATA_END=0x00144F          // Last address of xdata memory.
+//
+//
+//    CODE
+//
+-D_CODE_START=0x00C000         // First address for code.
+-D_CODE_END=0x000FEFF           // Last address for code.
+//
+//
+//
+//    NEAR CODE
+//
+-D_NEAR_CODE_END=0xFEFF        // Last address for near code.
+
+//    Bank CODE
+//
+-D_BANK_CODE0_START=0xE000 
+-D_BANK_CODE0_END=0xFA3F        // Last address for near code.
+-D_BANK_CODE1_START=0xD850 
+-D_BANK_CODE1_END=0xDFFF        // Last address for near code.
+//
+//
+//
+//
+//
+// Special SFRs
+// ------------
+//
+//
+//    CODE bank setup
+//
+//-D_FIRST_BANK_ADDR=0x10000
+//-D_NR_OF_BANKS=0x0
+//
+//
+//    Register bank setup
+//
+-D?REGISTER_BANK=0             // Default register bank (0,1,2,3).
+-D_REGISTER_BANK_START=0       // Start address for default register bank (00,08,10,18).
+//
+//
+//    PDATA page setup
+//
+-D?PBANK_NUMBER=1	       // high byte of 16-bit address to the PDATA area
+-D?PBANK=0x94                    // Most significant byte in MOVX A,@R0. (0xA0 is sfr P2)
+//-D?PBANK_EXT=0x8B              // Most significant byte in MOVX A,@R0. (0xEA is for Dallas DS80C390)
+//
+//
+//    Virtual register setup
+//    ----------------------
+//
+-D_BREG_START=0x0             // The bit address where the BREG segments starts.
+                               // Must be placed on: _BREG_START%8=0 where _BREG_START <= 0x78.
+-D?VB=0x20                     // ?VB is used when referencing BREG as whole byte.
+                               // Must be placed on: ?VB=0x20+_BREG_START/8                         
+-D?ESP=87                     // ESP Extended Stack Pointer
+//-D?ACON=9D                     // ACON Address Control Register
+//-D?DPS1=F6                     // DPTR Control Register
+//-D?DP1L=88
+//-D?DP1H=91
+//
+//
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// IDATA memory
+//
+
+// Setup "bit" segments (only for '__no_init bool' variables).
+
+-Z(BIT)BREG=_BREG_START
+-Z(BIT)BIT_N=18-7F
+-Z(DATA)REGISTERS+8=_REGISTER_BANK_START
+-Z(DATA)VREG+_NR_OF_VIRTUAL_REGISTERS=08-2F
+-Z(DATA)PSP,XSP#1F
+-Z(DATA)BDATA_Z,BDATA_N,BDATA_I#2F
+
+-Z(DATA)DOVERLAY=_DATA_START-_DATA_END
+-Z(DATA)DATA_I,DATA_Z,DATA_N=_DATA_START-_DATA_END
+-U(IDATA)0-7F=(DATA)0-7F
+-Z(IDATA)IDATA_I,IDATA_Z,IDATA_N=_DATA_START-_IDATA_END
+-Z(IDATA)ISTACK+_IDATA_STACK_SIZE#_DATA_START-_IDATA_END
+-Z(IDATA)IOVERLAY=_DATA_START-_IDATA_END
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// ROM memory
+//
+
+// Note: INTVEC must be placed first.
+// Note: CSTART Must be located in first 64k.
+
+//
+// Program memory
+//
+-Z(CODE)INTVEC=0xE000
+-Z(CODE)FUN_ENTRY#0x9EC6
+-Z(CODE)RCODE,CSTART,HOT_KEY=_CODE_START-_CODE_END
+-Z(CODE)GET_MUSIC_FILE,GET_DEVICE,MUSIC_PLAY,NEAR_CODE,MAIN=_CODE_START-_CODE_END
+-Z(CODE)DIFUNCT=_CODE_START-_CODE_END
+
+/*----------Common code------------*/
+-Z(CODE)MY_UART=_CODE_START-_CODE_END
+-Z(CODE)TABLE_CODE,COMMON_CODE=_CODE_START-_CODE_END
+/*--Line In*/
+-Z(CODE)LINE_IN_CODE=_CODE_START-_CODE_END
+/*--Key*/
+-Z(CODE)KEY_CODE=_CODE_START-_CODE_END
+/*--DAC*/
+-Z(CODE)DAC_CODE,DAC_TABLE_CODE=_CODE_START-_CODE_END
+/*--USB Host*/
+-Z(CODE)USB_DEVICE_CODE,USB_HOST_CODE=_CODE_START-_CODE_END
+/*--File System*/
+-Z(CODE)FS_CODE=_CODE_START-_CODE_END
+/*--RTC*/
+-Z(CODE)RTC_CODE=_CODE_START-_CODE_END
+/*--FM*/
+-Z(CODE)BK1080_CODE,BK1080_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)KT0830_CODE,KT0830_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)QN0835_CODE,QN0835_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)RDA5807_CODE,RDA5807_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)AR1019_CODE,AR1019_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)IIC_CODE,IIC_TABLE_CODE,FM_CODE,FM_TABLE_CODE=_CODE_START-_CODE_END
+/*--UI*/
+-Z(CODE)LED_5X7_CODE,LED_5X7_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)LCD_SEG_CODE,LCD_SEG_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)LCD_CODE=_CODE_START-_CODE_END
+-Z(CODE)BANK0_TABLE_CODE,BANK1_TABLE_CODE,BANK2_TABLE_CODE,BANK3_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)BANK4_TABLE_CODE,BANK5_TABLE_CODE,BANK6_TABLE_CODE,BANK7_TABLE_CODE=_CODE_START-_CODE_END
+-Z(CODE)UI_COMMON_CODE,UI_TABLE_CODE=_CODE_START-_CODE_END
+/*--User*/
+-Z(CODE)BIKE_CODE,BIKE_TABLE_CODE=_CODE_START-_CODE_END
+
+
+
+/*----------Bank code------------*/
+//-Z(CODE)MY_UART=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)TABLE_CODE,COMMON_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--RTC*/
+//-Z(CODE)RTC_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--Line In*/
+//-Z(CODE)LINE_IN_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--USB Host*/
+//-Z(CODE)USB_HOST_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--Key*/
+//-Z(CODE)KEY_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--DAC*/
+//-Z(CODE)DAC_CODE,DAC_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--FM*/
+//-Z(CODE)BK1080_CODE,BK1080_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)KT0830_CODE,KT0830_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)QN0835_CODE,QN0835_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)RDA5807_CODE,RDA5807_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)AR1019_CODE,AR1019_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+/*--UI*/
+//-Z(CODE)LED_5X7_CODE,LED_5X7_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)LCD_SEG_CODE,LCD_SEG_TABLE_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)LCD_CODE=_BANK_CODE0_START-_BANK_CODE0_END
+//-Z(CODE)IIC_CODE,IIC_TABLE_CODE,FM_CODE,FM_TABLE_CODE=_BANK_CODE1_START-_BANK_CODE1_END
+
+
+//-P(CODE)BANKED_CODE=[(_CODEBANK_START+_FIRST_BANK_ADDR)-(_CODEBANK_END+_FIRST_BANK_ADDR)]*_NR_OF_BANKS+10000 //  Setup bank-switched segments.
+
+
+//
+// Initializers
+//
+-Z(CODE)BIT_ID,BDATA_ID,DATA_ID,IDATA_ID,IXDATA_ID,PDATA_ID,XDATA_ID=_CODE_START-_CODE_END
+
+//
+// Constants located in code memory
+//
+-Z(CODE)CODE_C=_CODE_START-_CODE_END
+-Z(CODE)OTP_VOICE=_CODE_START-_CODE_END
+
+-MC000-FFFF=0-3FFF
+
+-Z(CODE)CHECKSUM#_CODE_END
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// XDATA memory
+//
+
+//
+// Stacks located in XDATA
+//
+-Z(XDATA)EXT_STACK+_EXTENDED_STACK_SIZE=_EXTENDED_STACK_START-_EXTENDED_STACK_END
+-Z(XDATA)PSTACK+_PDATA_STACK_SIZE=_PDATA_START-_PDATA_END
+//-Z(XDATA)XSTACK+_XDATA_STACK_SIZE=_XDATA_START-_XDATA_END
+
+//
+// PDATA - data memory
+//
+//-Z(XDATA)PDATA_N,PDATA_Z,PDATA_I=_PDATA_START-_PDATA_END
+
+//
+// XDATA - data memory
+//
+-Z(XDATA)INTERRUPT_TABLE=0x100
+-Z(XDATA)DECODE_MSG_V=0x180
+-Z(XDATA)FATFS_V=0x14F
+-Z(XDATA)FF_API_TEMP=0x200
+-Z(XDATA)FAT_API_V=0x980
+-Z(XDATA)IXDATA_N,IXDATA_Z,IXDATA_I,USB_HOST_XDATA=_XDATA_START-_XDATA_END
+-Z(XDATA)XDATA_N,XDATA_Z,XDATA_I=_XDATA_START-_XDATA_END
+-Z(XDATA)XDATA_HEAP+_XDATA_HEAP_SIZE=_XDATA_START-_XDATA_END
+-Z(CONST)XDATA_ROM_C=_XDATA_START-_XDATA_END
+-Z(XDATA)FAT_PATH_TEMP=0x0218C0
+-Z(XDATA)DEC_BUF#0x1FFF
+-Z(XDATA)FAT_API_TEMP=0x2000-0x3A00
+-Z(XDATA)FAT_API_V0=0x0172
+
+-cx51
+-R
+
+
+
+
+
+
+
+
+

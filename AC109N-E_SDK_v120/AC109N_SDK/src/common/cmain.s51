@@ -1,0 +1,808 @@
+/*******************************************************************************
+ *
+ * System initialization code for the 8051 IAR Systems C/EC++ Compiler.
+ *
+ * Copyright 2004-2005 IAR Systems. All rights reserved.
+ *
+ * $Revision: 4427 $
+ *
+ ******************************************************************************/
+
+#include "iar_common.s"
+#include "cd02.h"
+
+        EXTERNS_FOR_ALL_DPTR_SYMBOLS()
+
+
+#define XRSEGCSTART RSEG CSTART:CODE:NOROOT
+
+        MODULE ?cmain
+
+        EXTERN  main             ; Where to begin execution
+        EXTERN  exit             ; Where to go when done
+
+
+//----------------------------------------------------------------------
+//
+// Catch jump from cstartup.s51
+//
+//----------------------------------------------------------------------
+
+        XRSEGCSTART
+        PUBLIC  ?cmain
+        REQUIRE ?call_main
+
+?cmain:
+
+//------------------------------------------------------------------------
+//
+// Call __low_level_init to perform initialization before initializing
+// segments and calling main. If the function returns 0 no segment
+// initialization should take place.
+//
+// Link with your own version of __low_level_init to override the
+// default action: to do nothing but return 1.
+//
+//------------------------------------------------------------------------
+
+        RSEG	CSTART:CODE:NOROOT
+	EXTERN	__low_level_init
+        PUBLIC	__low_level_init_call
+
+__low_level_init_call:
+
+    //LCALL   __low_level_init
+	//CJNE	R1,#0,__init_segments
+
+        //-------------------------------------------------------
+        //
+        // Jump to the code that performs the rest of the system
+        // initialization before calling main().
+        //
+        //-------------------------------------------------------
+
+	LJMP	__skip_segment_init	; skip segment initialization
+
+
+//------------------------------------------------------------------------
+//
+// Segment initialization:
+//
+// Initialization for unused segments will not be included in the code
+//
+// xxx_Z  -- uninitialized data that are filled with zeros.
+// xxx_I  -- initialized data that gets the values from the corresponding
+//           xxx_ID segment.
+//
+//------------------------------------------------------------------------
+
+__init_segments:
+
+
+//------------------------------------------------------------------------
+//
+// Clear the BDATA_Z segment
+//
+
+	RSEG    BDATA_Z:DATA:NOROOT
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_BDATA_Z
+
+__INIT_BDATA_Z:
+	CLR	    A
+	MOV	    R1,#sfb(BDATA_Z)
+	MOV	    R0,#sizeof(BDATA_Z)
+	CJNE	R0,#0,BDATA_ZERO
+	SJMP	BDATA_ZERO_OUT
+BDATA_ZERO:
+	MOV    	@R1,A
+	INC	    R1
+	DJNZ	R0,BDATA_ZERO
+BDATA_ZERO_OUT:
+
+
+//------------------------------------------------------------------------
+//
+// Clear the DATA_Z segment
+//
+
+	RSEG    DATA_Z:DATA:NOROOT
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_DATA_Z
+
+__INIT_DATA_Z:
+	CLR	    A
+	MOV	    R1,#sfb(DATA_Z)
+	MOV	    R0,#sizeof(DATA_Z)
+	CJNE	R0,#0,DATA_ZERO
+	SJMP	DATA_ZERO_OUT
+DATA_ZERO:
+	MOV    	@R1,A
+	INC	    R1
+	DJNZ	R0,DATA_ZERO
+DATA_ZERO_OUT:
+
+
+//------------------------------------------------------------------------
+//
+// Clear the IDATA_Z segment
+//
+
+	RSEG    IDATA_Z:IDATA:NOROOT
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_IDATA_Z
+
+__INIT_IDATA_Z:
+	CLR	    A
+	MOV	    R1,#sfb(IDATA_Z)
+	MOV	    R0,#sizeof(IDATA_Z)
+	CJNE	R0,#0,IDATA_ZERO
+	SJMP	IDATA_ZERO_OUT
+IDATA_ZERO:
+	MOV    	@R1,A
+	INC	    R1
+	DJNZ	R0,IDATA_ZERO
+IDATA_ZERO_OUT:
+
+
+//------------------------------------------------------------------------
+//
+// Clear the PDATA_Z segment
+//
+
+	RSEG    PDATA_Z:XDATA:NOROOT
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_PDATA_Z
+
+__INIT_PDATA_Z:
+	CLR	    A
+	MOV	    R1,#LOW(sfb(PDATA_Z))
+	MOV	    R0,#sizeof(PDATA_Z)
+	CJNE	R0,#0,PDATA_ZERO
+	SJMP	PDATA_ZERO_OUT
+PDATA_ZERO:
+	MOVX   	@R1,A
+	INC	    R1
+	DJNZ	R0,PDATA_ZERO
+PDATA_ZERO_OUT:
+
+
+
+
+//------------------------------------------------------------------------
+//
+// Clear the XDATA_Z segment
+//
+
+	RSEG    XDATA_Z:XDATA:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_XDATA_Z
+
+__INIT_XDATA_Z:
+	CLR	    A
+	MOV	    DPTR,#sfb(XDATA_Z)
+	MOV	    R0,#(low(sizeof(XDATA_Z) + 1))
+	MOV	    R1,#(high(sizeof(XDATA_Z) + 0x0100))
+	SJMP	XDATA_ZERO_TEST
+XDATA_ZERO:
+	MOVX    @DPTR,A
+	INC	    DPTR
+XDATA_ZERO_TEST:
+	DJNZ	R0,XDATA_ZERO
+	DJNZ	R1,XDATA_ZERO
+
+
+//------------------------------------------------------------------------
+//
+// Clear the IXDATA_Z segment
+//
+
+	RSEG    IXDATA_Z:XDATA:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_IXDATA_Z
+
+__INIT_IXDATA_Z:
+	CLR	    A
+	MOV	    DPTR,#sfb(IXDATA_Z)
+	MOV	    R0,#(low(sizeof(IXDATA_Z) + 1))
+	MOV	    R1,#(high(sizeof(IXDATA_Z) + 0x0100))
+	SJMP	IXDATA_ZERO_TEST
+IXDATA_ZERO:
+	MOVX    @DPTR,A
+	INC	    DPTR
+IXDATA_ZERO_TEST:
+	DJNZ	R0,IXDATA_ZERO
+	DJNZ	R1,IXDATA_ZERO
+
+
+//------------------------------------------------------------------------
+//
+// Clear the FAR_Z segment
+//
+
+#if (defined(__EXTENDED_DPTR__))
+
+	RSEG    FAR_Z:XDATA:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_FAR_Z
+
+__INIT_FAR_Z:
+	CLR	A
+  #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(FAR_Z)
+  #else
+	MOV	DPL,#LOW(sfb(FAR_Z))
+	MOV	DPH,#BYTE2(sfb(FAR_Z))
+	MOV	?DPX,#BYTE3(sfb(FAR_Z))
+  #endif
+	MOV	R0,#(low(sizeof(FAR_Z) + 1))
+	MOV	R1,#(high(sizeof(FAR_Z) + 0x0100))
+	SJMP	FAR_ZERO_TEST
+FAR_ZERO:
+	MOVX    @DPTR,A
+	INC	DPTR
+FAR_ZERO_TEST:
+	DJNZ	R0,FAR_ZERO
+	DJNZ	R1,FAR_ZERO
+
+#endif
+
+
+//------------------------------------------------------------------------
+//
+// Clear the HUGE_Z segment
+//
+
+#if (defined(__EXTENDED_DPTR__))
+
+	RSEG    HUGE_Z:XDATA:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_HUGE_Z
+
+__INIT_HUGE_Z:
+	CLR	A
+  #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(HUGE_Z)
+  #else
+	MOV	DPL,#LOW(sfb(HUGE_Z))
+	MOV	DPH,#BYTE2(sfb(HUGE_Z))
+	MOV	?DPX,#BYTE3(sfb(HUGE_Z))
+  #endif
+	MOV	R0,#(LOW(sizeof(HUGE_Z) + 1))
+	MOV	R1,#(BYTE2(sizeof(HUGE_Z) + 0x000100))
+	MOV	R2,#(BYTE3(sizeof(HUGE_Z) + 0x010000))
+	SJMP	HUGE_ZERO_TEST
+HUGE_ZERO:
+	MOVX    @DPTR,A
+	INC	DPTR
+HUGE_ZERO_TEST:
+	DJNZ	R0,HUGE_ZERO
+	DJNZ	R1,HUGE_ZERO
+	DJNZ	R2,HUGE_ZERO
+
+#endif
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the BDATA_I segment
+//
+
+	RSEG	BDATA_I:DATA:NOROOT	
+	RSEG	BDATA_ID:CONST:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_BDATA_I
+
+__INIT_BDATA_I:
+	MOV	R0,#sfb(BDATA_I)
+	MOV	DPTR,#sfb(BDATA_ID)
+	MOV	R2,#sizeof(BDATA_I)
+	CJNE	R2,#0,BDATA_INIT
+	SJMP	BDATA_INIT_OUT
+BDATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	@R0,A
+	INC	R0
+	DJNZ	R2,BDATA_INIT
+BDATA_INIT_OUT:
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the DATA_I segment
+//
+
+	RSEG	DATA_I:DATA:NOROOT	
+	RSEG	DATA_ID:CONST:NOROOT
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_DATA_I
+
+__INIT_DATA_I:
+	MOV	R0,#sfb(DATA_I)
+	MOV	DPTR,#sfb(DATA_ID)
+	MOV	R2,#sizeof(DATA_I)
+	CJNE	R2,#0,DATA_INIT
+	SJMP	DATA_INIT_OUT
+DATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	@R0,A
+	INC	R0
+	DJNZ	R2,DATA_INIT
+DATA_INIT_OUT:
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the IDATA_I segment
+//
+
+	RSEG    IDATA_I:IDATA:NOROOT
+	RSEG    IDATA_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_IDATA_I
+
+__INIT_IDATA_I:
+	MOV	R0,#sfb(IDATA_I)
+	MOV	DPTR,#sfb(IDATA_ID)
+	MOV	R2,#sizeof(IDATA_I)
+	CJNE	R2,#0,IDATA_INIT
+	SJMP	IDATA_INIT_OUT
+IDATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	@R0,A
+	INC	R0
+	DJNZ	R2,IDATA_INIT
+IDATA_INIT_OUT:
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the PDATA_I segment
+//
+
+	RSEG    PDATA_I:XDATA:NOROOT
+	RSEG    PDATA_ID:CODE:NOROOT
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_PDATA_I
+
+__INIT_PDATA_I:
+	MOV	R0,#LOW(sfb(PDATA_I))
+	MOV	DPTR,#sfb(PDATA_ID)
+	MOV	R2,#sizeof(PDATA_I)
+	CJNE	R2,#0,PDATA_INIT
+	SJMP	PDATA_INIT_OUT
+PDATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOVX	@R0,A
+	INC	R0
+	DJNZ	R2,PDATA_INIT
+PDATA_INIT_OUT:
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the XDATA_I segment
+//
+
+	RSEG    XDATA_I:XDATA:NOROOT
+	RSEG    XDATA_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_XDATA_I
+
+__INIT_XDATA_I:
+
+	MOV	DPTR,#sfb(XDATA_I)   
+#if (defined(__EXTENDED_DPTR__) && ( __CORE__ != __CORE_EXTENDED1__ ))
+    MOV ?DPX,#0
+#endif
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	DPTR,#sfb(XDATA_ID)
+	MOV	R0,#(low(sizeof(XDATA_I) + 1))
+	MOV	R1,#(high(sizeof(XDATA_I) + 0x0100))
+	SJMP	XDATA_INIT_TEST
+XDATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	R4,DPL
+	MOV	R5,DPH
+	MOV	DPL,R2
+	MOV	DPH,R3
+	MOVX	@DPTR,A
+	INC	DPTR
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	DPL,R4
+	MOV	DPH,R5
+XDATA_INIT_TEST:
+	DJNZ	R0,XDATA_INIT
+	DJNZ	R1,XDATA_INIT
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the IXDATA_I segment
+//
+
+	RSEG    IXDATA_I:XDATA:NOROOT
+	RSEG    IXDATA_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_IXDATA_I
+
+__INIT_IXDATA_I:
+
+	MOV	DPTR,#sfb(IXDATA_I)
+#if (defined(__EXTENDED_DPTR__) && ( __CORE__ != __CORE_EXTENDED1__ ))
+        MOV ?DPX,#0
+#endif
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	DPTR,#sfb(IXDATA_ID)
+	MOV	R0,#(low(sizeof(IXDATA_I) + 1))
+	MOV	R1,#(high(sizeof(IXDATA_I) + 0x0100))
+	SJMP	IXDATA_INIT_TEST
+IXDATA_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	R4,DPL
+	MOV	R5,DPH
+	MOV	DPL,R2
+	MOV	DPH,R3
+	MOVX	@DPTR,A
+	INC	DPTR
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	DPL,R4
+	MOV	DPH,R5
+IXDATA_INIT_TEST:
+	DJNZ	R0,IXDATA_INIT
+	DJNZ	R1,IXDATA_INIT
+
+//------------------------------------------------------------------------
+//
+//  Initializise the FAR_I segment
+//
+
+#if (defined(__EXTENDED_DPTR__))
+  #if (__NUMBER_OF_DPTRS__ == 1)
+
+  //
+  // One data pointer
+  //
+	RSEG    FAR_I:XDATA:NOROOT
+	RSEG    FAR_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_FAR_I
+
+__INIT_FAR_I:
+	MOV	R2,#LOW(sfb(FAR_I))
+	MOV	R3,#BYTE2(sfb(FAR_I))
+	MOV	R4,#BYTE3(sfb(FAR_I))
+
+    #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(FAR_ID)
+    #else
+	MOV	DPL,#LOW(sfb(FAR_ID))
+	MOV	DPH,#BYTE2(sfb(FAR_ID))
+	MOV	?DPX,#BYTE3(sfb(FAR_ID))
+    #endif
+	MOV	R0,#(low(sizeof(FAR_I) + 1))
+	MOV	R1,#(high(sizeof(FAR_I) + 0x0100))
+	SJMP	FAR_INIT_TEST
+FAR_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	R5,DPL
+	MOV	R6,DPH
+	MOV	R7,?DPX
+	MOV	DPL,R2
+	MOV	DPH,R3
+	MOV	?DPX,R4
+	MOVX	@DPTR,A
+	INC	DPTR
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	R4,?DPX
+	MOV	DPL,R5
+	MOV	DPH,R6
+	MOV	?DPX,R7
+FAR_INIT_TEST:
+	DJNZ	R0,FAR_INIT
+	DJNZ	R1,FAR_INIT
+
+  #elif (__NUMBER_OF_DPTRS__ > 1)
+
+  //
+  // two data pointers
+  //
+
+	RSEG    FAR_I:XDATA:NOROOT
+	RSEG    FAR_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_FAR_I
+
+__INIT_FAR_I:
+    #ifdef __DPTR_SHADOWED__
+
+  //
+  // Shadowed dptrs (two data pointers)
+  //
+	MOV	DPL,#LOW(sfb(FAR_I))
+	MOV	DPH,#BYTE2(sfb(FAR_I))
+	MOV	?DPX,#BYTE3(sfb(FAR_I))
+
+	TOGGLE_DPTR
+
+	MOV	DPL,#LOW(sfb(FAR_ID))
+	MOV	DPH,#BYTE2(sfb(FAR_ID))
+	MOV	?DPX,#BYTE3(sfb(FAR_ID))
+        ; <- DPTR1 active
+
+
+    #else ; __DPTR_SEPARATE__
+
+  //
+  // Separate dptrs (two data pointers)
+  //
+
+      #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(FAR_I)
+      #else
+	MOV	DPL,#LOW(sfb(FAR_I))
+	MOV	DPH,#BYTE2(sfb(FAR_I))
+	MOV	?DPX,#BYTE3(sfb(FAR_I))
+      #endif
+
+      #if ( __CORE__ == __CORE_EXTENDED1__ )
+	TOGGLE_DPTR
+	MOV	DPTR,#sfb(FAR_ID)
+      #else
+	MOV	?DPL1,#LOW(sfb(FAR_ID))
+	MOV	?DPH1,#BYTE2(sfb(FAR_ID))
+	MOV	?DPX1,#BYTE3(sfb(FAR_ID))
+	TOGGLE_DPTR
+      #endif
+        ; <- DPTR1 active
+
+    #endif
+
+	MOV	R0,#(low(sizeof(FAR_I) + 1))
+	MOV	R1,#(high(sizeof(FAR_I) + 0x0100))
+	SJMP	FAR_INIT_TEST
+        ; <- DPTR1 active
+
+FAR_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	TOGGLE_DPTR
+	MOVX	@DPTR,A
+	INC	DPTR
+	TOGGLE_DPTR
+FAR_INIT_TEST:
+	DJNZ	R0,FAR_INIT
+	DJNZ	R1,FAR_INIT
+	SELECT_DPTR0
+
+  #else
+    #error "You must define __NUMBER_OF_DPTRS__"
+  #endif
+
+#endif ; __EXTENDED_DPTR__
+
+
+//------------------------------------------------------------------------
+//
+//  Initializise the HUGE_I segment
+//
+
+#if (defined(__EXTENDED_DPTR__))
+  #if (__NUMBER_OF_DPTRS__ == 1)
+
+  //
+  // One data pointer
+  //
+
+	RSEG    HUGE_I:XDATA:NOROOT
+	RSEG    HUGE_ID:CODE:NOROOT	
+	RSEG 	CSTART:CODE:NOROOT
+	PUBLIC	__INIT_HUGE_I
+
+__INIT_HUGE_I:
+	MOV	R2,#LOW(sfb(HUGE_I))
+	MOV	R3,#BYTE2(sfb(HUGE_I))
+	MOV	R4,#BYTE3(sfb(HUGE_I))
+
+    #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(HUGE_ID)
+    #else
+	MOV	DPL,#LOW(sfb(HUGE_ID))
+	MOV	DPH,#BYTE2(sfb(HUGE_ID))
+	MOV	?DPX,#BYTE3(sfb(HUGE_ID))
+    #endif
+	MOV	R0,#(LOW(sizeof(HUGE_I) + 1))
+	MOV	R1,#(BYTE2(sizeof(HUGE_I) + 0x000100))
+	MOV	B,#(BYTE3(sizeof(HUGE_I) + 0x010000))
+	SJMP	HUGE_INIT_TEST
+HUGE_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	MOV	R5,DPL
+	MOV	R6,DPH
+	MOV	R7,?DPX
+	MOV	DPL,R2
+	MOV	DPH,R3
+	MOV	?DPX,R4
+	MOVX	@DPTR,A
+	INC	DPTR
+	MOV	R2,DPL
+	MOV	R3,DPH
+	MOV	R4,?DPX
+	MOV	DPL,R5
+	MOV	DPH,R6
+	MOV	?DPX,R7
+HUGE_INIT_TEST:
+	DJNZ	R0,HUGE_INIT
+	DJNZ	R1,HUGE_INIT
+	DJNZ	B,HUGE_INIT
+
+  #elif (__NUMBER_OF_DPTRS__ > 1)
+
+  //
+  // Two data pointer
+  //
+
+	RSEG    HUGE_I:XDATA:NOROOT
+	RSEG    HUGE_ID:CODE:NOROOT	
+	RSEG    CSTART:CODE:NOROOT
+	PUBLIC	__INIT_HUGE_I
+
+__INIT_HUGE_I:
+    #ifdef __DPTR_SHADOWED__
+
+  //
+  // Shadowed dptrs (two data pointers)
+  //
+
+	MOV	DPL,#LOW(sfb(HUGE_I))
+	MOV	DPH,#BYTE2(sfb(HUGE_I))
+	MOV	?DPX,#BYTE3(sfb(HUGE_I))
+
+	TOGGLE_DPTR
+
+	MOV	DPL,#LOW(sfb(HUGE_ID))
+	MOV	DPH,#BYTE2(sfb(HUGE_ID))
+	MOV	?DPX,#BYTE3(sfb(HUGE_ID))
+;       ; <- DPTR1 active
+
+
+    #else ; __DPTR_SEPARATE__
+
+  //
+  // Separate dptrs (two data pointers)
+  //
+
+      #if ( __CORE__ == __CORE_EXTENDED1__ )
+	MOV	DPTR,#sfb(HUGE_I)
+      #else
+	MOV	DPL,#LOW(sfb(HUGE_I))
+	MOV	DPH,#BYTE2(sfb(HUGE_I))
+	MOV	?DPX,#BYTE3(sfb(HUGE_I))
+      #endif
+
+      #if ( __CORE__ == __CORE_EXTENDED1__ )
+	TOGGLE_DPTR
+	MOV	DPTR,#sfb(HUGE_ID)
+      #else
+	MOV	?DPL1,#LOW(sfb(HUGE_ID))
+	MOV	?DPH1,#BYTE2(sfb(HUGE_ID))
+	MOV	?DPX1,#BYTE3(sfb(HUGE_ID))
+        ; switch to DPRT1
+	TOGGLE_DPTR
+      #endif
+        ; <- DPTR1 active
+
+    #endif
+
+	MOV	R0,#(LOW(sizeof(HUGE_I) + 1))
+	MOV	R1,#(BYTE2(sizeof(HUGE_I) + 0x000100))
+	MOV	R2,#(BYTE3(sizeof(HUGE_I) + 0x010000))
+	SJMP	HUGE_INIT_TEST
+        ; <- DPTR1 active
+
+HUGE_INIT:
+	CLR	A
+	MOVC	A,@A+DPTR
+	INC	DPTR
+	TOGGLE_DPTR
+	MOVX	@DPTR,A
+	INC	DPTR
+	TOGGLE_DPTR
+HUGE_INIT_TEST:
+	DJNZ	R0,HUGE_INIT
+	DJNZ	R1,HUGE_INIT
+	DJNZ	R2,HUGE_INIT
+	SELECT_DPTR0
+
+  #else
+    #error "You must define __NUMBER_OF_DPTRS__"
+  #endif
+
+#endif ;__EXTENDED_DPTR__ far/huge initialized data
+
+__skip_segment_init:
+
+
+// --------------------------------------------------------------
+// Call constructors of static objects.
+// ====================================
+//
+//   This code will only be used if any EC++
+//   modules defines global objects that need to
+//   have its constructor called before main.
+//
+//---------------------------------------------------------------
+
+#if (defined(__DLIB_BUILD__) )
+        RSEG    DIFUNCT:CODE:ROOT
+        XRSEGCSTART
+        EXTERN  __cstart_call_ctors
+        PUBLIC  ?cstart_call_ctors
+
+?cstart_call_ctors:
+  #if (__CODE_MODEL__ == __CM_BANKED__)
+        EXTERN  ?BCALL
+
+        MOV     DPL,#BYTE1(__cstart_call_ctors)
+        MOV     DPH,#BYTE2(__cstart_call_ctors)
+    #ifdef __EXTENDED_DPTR__
+        MOV     ?DPX,#0
+    #endif
+        MOV     A,#BYTE3(__cstart_call_ctors)
+	LCALL   ?BCALL
+  #elif (__CORE__ == __CORE_EXTENDED2__ )
+	EXTERN ?MEX1
+	MOV ?MEX1, #BYTE3(__cstart_call_ctors)
+	LCALL    __cstart_call_ctors & 0xFFFF
+  #else
+	LCALL	__cstart_call_ctors
+  #endif
+
+#endif ; __DLIB_BUILD__
+
+// -----------------------------------------------
+// Call main() with no arguments and then exit using the return value
+// of main as the parameter.
+//
+
+        XRSEGCSTART
+        PUBLIC  ?call_main
+?call_main:
+#ifndef NDEBUG
+    extern ?BCALL
+    mov a,#main >> 16
+    mov dptr, #main    
+    CALL ?BCALL
+#else
+    jmp  main
+#endif
+	//LCALL   main
+    //LCALL   exit
+
+
+        ENDMOD
+
+        END
+

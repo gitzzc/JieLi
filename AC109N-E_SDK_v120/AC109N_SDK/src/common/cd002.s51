@@ -1,0 +1,71 @@
+/*************************************************************/
+/** @file:cd002.s51
+    @brief:
+    @details:
+    @author:Juntham
+    @date: 2012-05-28,14:11
+    @note:此文件下的程序在第一次使用后，不能改变每个函数的地址
+*/
+/*************************************************************/
+
+#include "ext_inst.inc"
+#include "int.h"
+#include "cd02.h"
+   
+   
+int_config macro
+    extern int_service
+    ORG 0x3 + (\1 * 8)
+    push ACC
+    mov  A,#\1
+    jmp  int_service
+    endm
+
+
+
+    ASEG
+    COMMON	INTVEC:CODE:ROOT(0)
+//    int_config TIMER0_INT
+    int_config TIMER1_INT
+    int_config TIMER2_INT
+//    int_config INT_TIMER3
+//    int_config IRTC_INT
+//    int_config INT_SOF
+    int_config USBCTL_INT
+//    int_config INT_UART_BRK
+//    int_config INT_PORT
+//    int_config INT_OBUF
+//    int_config INT_SINT
+//    int_config INT_ISD2W
+    int_config SDC_INT
+    int_config SPI_IIC_INT
+    int_config LVD_WDT_OSC_ADC_INT
+    int_config SOFT_INT
+   
+   
+      RSEG NEAR_CODE:CODE:NOROOT(0)
+      PUBLIC count_energy
+      FUNCTION count_energy,0
+count_energy:
+      mov  a,r1
+      mov16 wr0,iwr2
+      asr16k wr0,8
+      mul16s wr0,wr0
+count_energy_1:
+      inc216 wr2
+      mov16 wr0,iwr2
+      asr16k wr0,8
+      mac16s wr0,wr0
+      clr c
+      subb a,#1
+      jnc  count_energy_1
+      mov r2,MRES0
+      mov r3,MRES1
+      mov r4,MRES2
+      mov r5,MRES3
+      RET
+   
+      
+	END
+
+	

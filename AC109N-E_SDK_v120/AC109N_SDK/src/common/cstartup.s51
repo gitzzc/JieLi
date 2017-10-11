@@ -1,0 +1,529 @@
+//------------------------------------------------------------------------
+//                                                               
+//                       CStartup.s51                            
+//                                                               
+// This module contains the code executed before the C/EC++      
+// "main" function is called. The code is designed to run on any 
+// processor based on the 8051 architecture.                     
+//                                                               
+//       REVISON INFORMATION                                     
+//                                                              
+//       $Revision: 1.111 $
+//                                                               
+//       Log information is available at the end of this file    
+//                                                               
+//------------------------------------------------------------------------
+
+#include "iar_common.s"
+#include "ext_inst.inc"
+#include "cd02.h"
+
+	MODULE	 CSTARTUP
+	PUBLIC   __program_start	
+
+	EXTERN  ?B0
+	EXTERNS_FOR_ALL_DPTR_SYMBOLS()
+	REQUIRE ?B0
+        REQUIRE __call_main
+
+     #if (__NUMBER_OF_DPTRS__ > 1)
+	REQUIRE ?RESET_DPS
+     #endif
+
+     #if (__CORE__ == __CORE_EXTENDED1__)
+        REQUIRE __call_init_extended1
+     #endif
+
+; Uncomment this when rom-monitor requires 3 NOPS between statements.
+;	REQUIRE ?ROM_MONITOR_NOPS
+
+	RSEG	REGISTERS:NOROOT:DATA
+	PUBLIC  ?REGISTERS
+
+?REGISTERS:
+
+//------------------------------------------------------------------------
+// The C stack segment. Should be mapped into internal data RAM
+//
+//   ISTACK:    Should be mapped into internal data RAM
+//   PSTACK:    Should be mapped into external data RAM page
+//   XSTACK:    Should be mapped into external data RAM
+//   EXT_STACK: Should be mapped into external data RAM
+//
+//------------------------------------------------------------------------
+// The C stack is used for LCALL and temporary storage for
+// code generator help-routines (math etc). The stack will be
+// located after all other internal RAM variables if the stan-
+// dard linking procedure is followed. Note that C interrupt
+// routines can double stack size demands.
+//
+//------------------------------------------------------------------------
+
+	RSEG	ISTACK:NOROOT:IDATA
+	PUBLIC  ?ISTACK_START
+?ISTACK_START:
+
+	RSEG	PSTACK:NOROOT:XDATA
+	PUBLIC  ?PSTACK_START
+?PSTACK_START:
+
+	RSEG	XSTACK:NOROOT:XDATA
+	PUBLIC  ?XSTACK_START
+?XSTACK_START:
+
+	RSEG	EXT_STACK:NOROOT:XDATA
+	PUBLIC  ?EXT_STACK_START
+?EXT_STACK_START:
+
+
+//------------------------------------------------------------------------
+//
+// Define reset vector.
+//
+//------------------------------------------------------------------------
+
+        COMMON	INTVEC:CODE:ROOT(0)
+
+        // The reset vector must be located at address zero, the reset
+        // vector is located first in the INTVEC segment. This segment
+        // must thus be located at address zero. Be carefull if using
+        // assembler sequences located with the ASEG directive, which may
+        // prevent the INTVEC segment from being located at address zero.
+
+        LIMIT SFB(INTVEC),0,0,"The INTVEC segment must begin at address zero"
+
+?reset_vector:
+#if (__VER__ != 720)
+    #error "The complier verion is not fitable!"
+#endif
+
+	DB	0x02    ; LJMP
+#if defined(START_INIT_IN_FAR)
+	DB	BYTE3(__program_start)
+#endif
+	DB	high(__program_start)
+	DB	low(__program_start)
+
+
+//------------------------------------------------------------------------
+//					
+// Initialize the chip to suit IAR ICC8051 Compiler
+//
+//------------------------------------------------------------------------
+
+	RSEG    CSTART:CODE:ROOT
+	EXTERN  ?REGISTER_BANK
+	REQUIRE ?ISTACK_START
+	REQUIRE ?REGISTERS
+    REQUIRE ?reset_vector
+
+__program_start:
+    MOV     DPTR, #LVD_CON
+    MOV     A,#0x1F                 //0x1c:2.2V, 0x1d:2.4v, 0x1e:2.6v, 0x1f:2.8v
+    MOVX    @DPTR, A
+	MOV     PSW,#(?REGISTER_BANK << 3)
+
+//------------------------------------------------------------------------
+//
+// Reset of bank registers and stack pointers
+// ==========================================
+//
+// ?RESET_SP:  Resets the IDATA stack pointer
+// ?RESET_ESP: Resets the extended stack pointer
+// ?RESET_PSP: Resets the PDATA stack pointer
+// ?RESET_XSP: Resets the XDATA stack pointer
+//
+// ?RESET_CODE_BANK:      Resets the current code bank register
+// ?RESET_PDATA_BANK:     Resets the high byte of PDATA page register
+//
+// ?RESET_DPS: Resets the DPTR selector (point at DPTR0)
+//
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+//
+// Reset idata or extended stack pointer
+//   extended stack pointer if  the extended stack is used
+//   otherwise, the ordinary stack pointer
+//
+//------------------------------------------------------------------------
+
+#if (defined(__EXTENDED_STACK__) )
+
+//
+// Reset extended stack pointer
+//
+
+	PUBLIC  ?RESET_ESP
+	REQUIRE ?EXT_STACK_START
+	EXTERN	?ESP
+    EXTERN  clock_power_on
+    EXTERN  dac_on_asm
+    //extern  uart_setup
+?RESET_ESP:
+	MOV     SP,#low(sfb(EXT_STACK))
+	MOV     ?ESP,#high(sfb(EXT_STACK))
+    //MOV     ?PSP,#low(sfe(PSTACK))
+    
+#ifndef NDEBUG
+    extern B_CURRENTBANK
+    extern ?BCALL
+    
+    mov B_CURRENTBANK,#0
+
+    mov a,#clock_power_on >> 16
+    mov dptr, #clock_power_on    
+    CALL ?BCALL
+    
+    mov a,#dac_on_asm >> 16
+    mov dptr, #dac_on_asm
+    call ?BCALL
+#else
+    call clock_power_on
+    call dac_on_asm
+#endif
+   
+#ifdef NDEBUG    
+// CLEAR ALL RAM 0 ~ 0x7A3F    
+CLEAR_ALL_XDATA:    
+    CLR	    A
+    MOV     P0HD,A
+    MOV     P2HD,A
+    MOV     DPCON, #0x10            //auto inc
+    MOV	    DPTR, #0x0000
+    MOV     R2, #low 0x7A40
+    MOV     R3, #high 0x7A40
+XDATA_LOOP:		
+    REPT    8    
+	MOVX    @DPTR,A
+    ENDR
+    MOV     R0,DP0L
+    MOV     R1,DP0H
+    cmp16   wr0, wr2
+    jnb     ZZ, XDATA_LOOP
+    MOV     DPCON, #0x0   
+#else
+// CLEAR ALL RAM 0 ~ 0x1A3F 
+CLEAR_ALL_XDATA:    
+    CLR	    A
+    MOV     DPCON, #0x10            //auto inc
+    MOV	    DPTR, #0x0000
+    MOV     R2, #low 0x1A40
+    MOV     R3, #high 0x1A40
+XDATA_LOOP:		
+    REPT    8    
+	MOVX    @DPTR,A
+    ENDR
+    MOV     R0,DP0L
+    MOV     R1,DP0H
+    cmp16   wr0, wr2
+    jnb     ZZ, XDATA_LOOP
+    MOV     DPCON, #0x0   
+#endif
+    
+#else
+
+//
+// Reset idata stack pointer
+//
+
+	PUBLIC  ?RESET_SP
+	REQUIRE ?ISTACK_START
+
+?RESET_SP:
+	MOV     SP,#SFB(ISTACK)
+#endif
+
+
+//------------------------------------------------------------------------
+//
+// Reset pdata stack pointer
+//
+//------------------------------------------------------------------------
+
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC  ?RESET_PSP
+	EXTERN  ?PSP
+	REQUIRE ?PSTACK_START
+	REQUIRE ?RESET_PDATA_BANK
+	EXTERN  ?PSTACK
+
+?RESET_PSP:
+	MOV     ?PSP,#low(sfe(PSTACK))
+
+
+//------------------------------------------------------------------------
+//
+// Reset xdata stack pointer
+//
+//------------------------------------------------------------------------
+
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC  ?RESET_XSP
+	EXTERN  ?XSP
+	REQUIRE ?XSTACK_START
+	EXTERN  ?XSTACK
+
+?RESET_XSP:
+	MOV     ?XSP,#low(sfe(XSTACK))
+	MOV     ?XSP+1,#high(sfe(XSTACK))
+
+
+//------------------------------------------------------------------------
+//
+// Reset code bank
+//
+//------------------------------------------------------------------------
+
+#if ( (__CODE_MODEL__ == __CM_BANKED__) || ( __CODE_MODEL__ == __CM_NEAR__ ) )
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC  ?RESET_CODE_BANK
+	EXTERN  ?CBANK
+
+?RESET_CODE_BANK:
+	//MOV	?CBANK,#0x00
+#endif
+
+
+//------------------------------------------------------------------------
+//
+// Reset pdata page
+//
+//------------------------------------------------------------------------
+
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC  ?RESET_PDATA_BANK
+	EXTERN  ?PBANK
+	EXTERN	?PBANK_NUMBER
+
+?RESET_PDATA_BANK:
+	MOV     ?PBANK,#?PBANK_NUMBER
+#if (defined ( __EXTENDED_DPTR__))
+	EXTERN  ?PBANK_EXT
+
+?RESET_PDATA_BANK_EXT:
+	MOV     ?PBANK_EXT,#0x00
+#endif
+
+
+//------------------------------------------------------------------------
+//
+// Reset data pointer select register
+//
+//------------------------------------------------------------------------
+
+#if (__NUMBER_OF_DPTRS__ > 1)
+
+	RSEG	CSTART:CODE:NOROOT
+	PUBLIC  ?RESET_DPS
+
+?RESET_DPS:
+  SELECT_DPTR0()
+
+#endif
+
+
+//------------------------------------------------------------------------
+//
+// Initialize the extended1 core
+//
+//------------------------------------------------------------------------
+
+#if (__CORE__ == __CORE_EXTENDED1__)
+
+        REQUIRE __call_init_extended1
+
+        RSEG	CSTART:CODE:NOROOT
+        PUBLIC  __call_init_extended1
+	EXTERN	__init_extended1
+
+
+__call_init_extended1:
+	DB	0x12    ; LCALL
+#if defined(START_INIT_IN_FAR)
+	DB	BYTE3(__init_extended1)
+#endif
+	DB	high(__init_extended1)
+	DB	low(__init_extended1)
+#endif
+
+
+
+//------------------------------------------------------------------------
+//
+// Disable the PFLASH cache in Infineon devices that have the hardware
+// bug.
+//
+//------------------------------------------------------------------------
+
+        RSEG    CSTART:CODE:NOROOT
+        PUBLIC __disable_infineon_pflash
+
+__disable_infineon_pflash:
+	DB	0x12    ; LCALL
+#if defined(START_INIT_IN_FAR)
+	DB	0x00
+#endif
+	DB	0xDF
+	DB	0xFC
+
+//------------------------------------------------------------------------
+//
+// Jump to the code that performs the rest of the system initialization
+// before calling main().
+//
+//------------------------------------------------------------------------
+
+
+	RSEG    CSTART:CODE:NOROOT
+	EXTERN  ?cmain
+
+__call_main:
+        LJMP	?cmain
+
+	ENDMOD __program_start
+
+
+
+
+;----------------------------------------------------------------;
+; Virtual registers						 ;
+; =================						 ;
+; Below is some segment needed for the IAR ICC C/EC++ compiler   ;
+;								 ;
+; BREG  : A segment for 8 bit registers for use by the compiler. ;
+;         ?B0 is the first register.                             ;
+; VREG  : Segement that holds up to 32 virtual registers for     ;
+;         use by the compiler. ?V0 is the first register.        ;
+; PSP   : Segment containing the PDATA stack pointer (?PSP)      ;
+; XSP   : Segment containing the XDATA stack pointer (?XSP)      ;
+; 								 ;
+;----------------------------------------------------------------;
+; NOTE: The XLINK varialbe _NR_OF_VIRTUAL_REGISTERS must be 	 ;
+;       defined to set the size for the VREG segment.   	 ;
+;----------------------------------------------------------------;
+
+	MODULE  VIRTUAL_REGISTERS
+	PUBLIC  ?B0
+	PUBLIC  ?V0
+	PUBLIC  ?PSP
+	PUBLIC  ?XSP
+	RSEG    BREG:BIT:NOROOT
+
+?B0:
+	DS      8
+
+  	RSEG    VREG:DATA:NOROOT
+	EXTERN	_NR_OF_VIRTUAL_REGISTERS
+?V0:
+	DS      0
+
+	RSEG    PSP:DATA:NOROOT
+	EXTERN  ?RESET_PSP
+	REQUIRE	?RESET_PSP
+?PSP:
+	DS      1
+
+	RSEG    XSP:DATA:NOROOT
+	EXTERN  ?RESET_XSP
+	REQUIRE	?RESET_XSP
+?XSP:
+	DS      2
+
+	ENDMOD ; VIRTUAL_REGISTERS
+
+
+
+;----------------------------------------------------------------;
+; Register banks						 ;
+; =================						 ;
+; Below is some segment needed for the IAR ICC C/EC++ compiler   ;
+;								 ;
+; The register banks will only be included if the #pragma        ;
+; register_bank is used for the corresponding register bank      ;
+; 								 ;
+;----------------------------------------------------------------;
+
+	MODULE	REGISTER_BANK0
+	PUBLIC	__REG_BANK_0
+	ASEGN	__REG_BANK0:DATA,0x00
+
+__REG_BANK_0:
+	DS	8
+	ENDMOD
+
+
+	MODULE	REGISTER_BANK1
+	PUBLIC	__REG_BANK_1
+	ASEGN	__REG_BANK1:DATA,0x08
+__REG_BANK_1:
+	DS	8
+	ENDMOD
+
+
+	MODULE	REGISTER_BANK2
+	PUBLIC	__REG_BANK_2
+	ASEGN	__REG_BANK2:DATA,0x10
+__REG_BANK_2:
+	DS	8
+	ENDMOD
+
+
+	MODULE	REGISTER_BANK3
+	PUBLIC	__REG_BANK_3
+	ASEGN	__REG_BANK3:DATA,0x18
+__REG_BANK_3:
+	DS	8
+	ENDMOD	; REGISTER_BANK3
+
+
+	END
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;  $Id: CStartup.s51 1.111 2006/11/10 14:18:03Z daniel Exp $
+;  $Log: CStartup.s51 $
+;  Revision 1.111  2006/11/10 14:18:03Z  daniel
+;  Revision 1.110  2006/03/06 14:56:26Z  owi
+;  Revision 1.109  2005/11/24 12:41:50Z  mikael
+;  Revision 1.108  2005/11/24 12:40:03Z  matsp
+;  Revision 1.107  2005/11/24 10:34:55Z  mikael
+;  Added function declaration to __program_start 
+;  Revision 1.106  2005/11/24 09:31:59Z  ola
+;  Revision 1.105  2005/06/03 14:13:19Z  ola
+;  Revision 1.104  2005/05/19 15:21:34Z  ola
+;  Revision 1.103  2005/05/11 06:59:54Z  ola
+;  Revision 1.102  2005/03/17 14:58:19Z  owi
+;  Revision 1.101  2005/03/17 13:29:02Z  owi
+;  Revision 1.100  2005/03/15 17:09:39Z  owi
+;  Revision 1.98  2005/03/04 10:31:28Z  owi
+;  Revision 1.97  2005/02/02 16:36:23Z  ola
+;  Revision 1.96  2005/02/01 17:43:30Z  ola
+;  Revision 1.95  2005/01/31 12:03:48Z  ola
+;  Revision 1.94  2005/01/27 10:24:03Z  ola
+;  Revision 1.93  2005/01/25 09:16:43Z  ola
+;  Revision 1.92  2005/01/17 16:10:17Z  ola
+;  Revision 1.91  2004/09/23 15:32:17Z  owi
+;  Revision 1.90  2004/09/23 12:49:16Z  owi
+;  Revision 1.89  2004/09/17 15:56:30Z  owi
+;  Revision 1.88  2004/09/16 08:02:50Z  owi
+;  Revision 1.87  2004/06/10 20:10:26Z  owi
+;  Revision 1.86  2004/04/22 14:34:02Z  ola
+;  Revision 1.85  2004/03/22 09:58:23Z  owi
+;  Revision 1.84  2004/03/17 17:43:56Z  owi
+;  Revision 1.82  2004/01/30 13:32:34Z  ola
+;  Revision 1.81  2004/01/13 14:33:39Z  owi
+;  Revision 1.78  2004/01/12 15:21:24Z  owi
+;  Revision 1.77  2003/12/17 19:15:12Z  owi
+;  Revision 1.76  2003/12/17 18:25:03Z  owi
+;  Revision 1.75  2003/12/10 23:29:56Z  owi
+;  Revision 1.74  2003/12/10 18:07:03Z  owi
+;  Revision 1.73  2003/12/10 15:16:31Z  owi
+;  Revision 1.72  2003/11/28 09:05:10Z  ola
+;  Revision 1.71  2003/11/26 15:08:39Z  ola
+;  Revision 1.70  2003/11/12 12:12:02Z  owi
+;  Revision 1.69  2003/11/12 12:00:51Z  owi
+;  Revision 1.68  2003/10/23 13:06:59Z  ola
+;  Revision 1.67  2003/10/09 10:33:14Z  owi
+;  Revision 1.66  2003/10/08 13:53:48Z  owi
+;  Revision 1.65  2003/10/08 08:35:14Z  owi
+;  Revision 1.64  2003/10/07 12:50:36Z  owi
