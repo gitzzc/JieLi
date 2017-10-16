@@ -41,6 +41,9 @@
 enum
 {
     AD_CH_KEY = 0,
+    AD_BIKE_TEMP,
+    AD_BIKE_VOL,
+    AD_BIKE_SPEED,
     AD_CH_AMUX_L,
     AD_CH_AMUX_R,   
     AD_CH_LDO,       

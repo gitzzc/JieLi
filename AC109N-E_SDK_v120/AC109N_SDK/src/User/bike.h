@@ -8,17 +8,6 @@
   ******************************************************************************
   * @Changlog
   * V2.00
-	* 功能：
-	* 1.系统电压通过MODE1,MODE2自动检测；
-	* 2.时钟功能自动检测，无芯片不显示；
-	* 3.通过左右转向进行时间调整模式；
-	* 4.通过串口可进行参数标定,	短接低速、SWIM信号进行参数标定；
-	* 5.参数保存于EEPROM;
-	* 6.一线通功能；
-	* 7.档位信息优先读取一线通数据，实现四档信息判断，一线通中断后采用档把数据；
-	* 8.开启开门狗功能；
-	* 9.通过PCB_VER定义不同的硬件版本，支持0011、0012、0022、0041；
-	*10.通过YXT_XX定义不同的控制器版本；
   *
   ******************************************************************************
   */
@@ -36,7 +25,7 @@
 #define TIME_ENABLE 0
 #define YXT_ENABLE  0				
 #define RESET_MILE_ENABLE
-	
+//#define	LCD_SEG_TEST
 
     
 #ifndef PCB_VER
@@ -51,11 +40,6 @@
 	#define YXT_ENABLE      0				
 #endif
 
-#define BIKE_TEMP_ADC	0
-#define BIKE_VOL_ADC	0
-#define BIKE_SPEED_ADC	0
-
-
 /******************************************************************************/
 #define VOL_CALIBRATIOIN	600UL	//60.0V
 #define TEMP_CALIBRATIOIN	250UL	//25.0C
@@ -64,7 +48,7 @@
 #define PON_ALLON_TIME		2000UL	//1000ms
 
 #define DISPLAY_MAX_SPEED	45UL	//40km/h
-#define SPEEDMODE_DEFAULT	1		//1档
+#define SPEEDMODE_DEFAULT	1		//1�?
 
 /******************************************************************************/
 typedef struct {
@@ -86,7 +70,9 @@ typedef struct {
 	unsigned char BT		:1;	
 	unsigned char MP3		:1;	
 	unsigned char FM		:1;	
-	unsigned char VOL		:1;	
+	unsigned char bShowVol	:1;	
+    unsigned char bPlayFlash:1;
+    unsigned char bMute		:1;
 	
 	unsigned char TurnLeft;
 	unsigned char TurnRight;
@@ -103,7 +89,13 @@ typedef struct {
 	unsigned long Mile;
 	unsigned long FMile;
 	unsigned int  Tick;
-	unsigned int  PlayTime;
+	unsigned int  uiPlayTime;
+	unsigned int  uiPlayMedia;
+	unsigned int  uiValue;
+	unsigned int  uiFileNO;
+	unsigned int  uiFM_Freq;
+	unsigned int  uiFM_Channel;
+	unsigned int  uiPlayStatus;
 	
 	unsigned char Hour;
 	unsigned char Minute;

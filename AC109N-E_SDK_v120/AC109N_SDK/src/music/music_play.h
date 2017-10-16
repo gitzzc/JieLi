@@ -39,6 +39,7 @@ typedef struct _MUSIC_PLAY_VAR
 
 
 void music_app(void);
+void OFF_mode(void);
 void set_eq(bool eq_en, u8 eq);
 bool play_device_file(bool file_break_point);
 extern u32 count_energy(u8* addr,u8 len);

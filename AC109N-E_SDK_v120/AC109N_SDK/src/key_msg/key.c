@@ -28,6 +28,9 @@ _no_init void (_near_func * _data key_msg_filter)(u8, u8);
 const u8 ad_table[] AT(TABLE_CODE)=
 {
     0xf7,               ///<高4位为延时，低4位为通道选择
+    0xF2,
+    0xF4,
+    0xF3,
     0xfc,
     0xfd,
     0xfe,

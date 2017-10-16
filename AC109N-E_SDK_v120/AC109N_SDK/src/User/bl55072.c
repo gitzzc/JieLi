@@ -5,13 +5,13 @@
 #include "bl55072.h"
 #include "bike.h"
 
-#define BL55072_WRITE          	0x20
-#define BL55072_READ           	0x21
+#define BL55072_WRITE          	BL_ADDR
+#define BL55072_READ           	BL_ADDR+1
 
 void BL55072_WriteByte(u8 CW, u16 data2) AT(BIKE_CODE)  
 {
 	iic_busy = 1;
-  iic_start();
+	iic_start();
 	iic_sendbyte(BL55072_WRITE);
 	iic_sendbyte(CW);
 	iic_sendbyte(data2>>8);

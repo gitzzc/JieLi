@@ -159,6 +159,31 @@ void (* const fm_mute[])(u8) AT(FM_TABLE_CODE)=
 #endif
 };
 
+void (* const fm_setch[])(u8) AT(FM_TABLE_CODE)=
+{
+#ifdef	RDA5807
+    RDA5807_setch,
+#endif
+
+#ifdef	BK1080
+    BK1080_setch,
+#endif
+
+#ifdef	KT0830EG
+    KT0830_setch,
+#endif
+
+#ifdef	 QN8035
+    QN8035_setch,
+#endif
+
+#ifdef	AR1019
+    AR1019_setch,
+#endif
+  
+};
+
+
 /*----------------------------------------------------------------------------*/
 /**@brief   FM模块初始化接口函数
    @param
@@ -474,12 +499,19 @@ bool fm_scan(u8 mode) AT(FM_CODE)
         fm_module_mute(0); 
         set_memory(MEM_FRE, fm_mode_var.wFreq - MIN_FRE);
         save_fm_point(fm_mode_var.wFreq - MIN_FRE);
-        fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
+        fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);     
         fm_mode_var.bTotalChannel = get_total_mem_channel(); 
-		UI_menu(MENU_FM_FIND_STATION); 
-		return true;            		
+		    UI_menu(MENU_FM_FIND_STATION); 
+		    return true;            		
     }
 	  
     return false;
 }
+
+void fm_set_ch(u8 db) AT(FM_CODE)
+{
+  (* fm_setch[fm_mode_var.bAddr])(db);
+}
+
+
 #endif

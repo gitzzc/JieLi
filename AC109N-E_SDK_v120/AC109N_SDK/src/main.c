@@ -71,7 +71,7 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
     dac_check();
 
     /*UI Update*/
-    monitor_scan();
+    //monitor_scan();
 
     /*Device Scan*/
     USB_online_otp();
@@ -237,6 +237,10 @@ static void sys_init(void) AT(CSTART)
 {
     /*IIC I/O init*/
     iic_init();
+/*    P0DIR |= (1<<2)|(1<<0);
+    P0PU |= (1<<2)|(1<<0);
+    P00 = 1;
+    P02 = 1;*/
 
     /*UI init*/
     ui_init();
@@ -269,7 +273,7 @@ static void sys_init(void) AT(CSTART)
 
     /*PLL初始化，会关总中断*/
 	pll_init();
-
+    uart_setup();
     /*EEPROM verify*/
 	eeprom_verify();
 	/*DAC 初始化*/
@@ -297,8 +301,8 @@ void main(void) AT(CSTART)
 #ifdef WDT_EN
     config_wdt(0x5D);           //enable WDT 8S,如果改成4S,有些慢U盘会导致看门狗复位
 #endif
-    uart_setup();
     sys_init();
+    uart_setup();
     clear_all_event();
 
     while (1)
@@ -320,24 +324,28 @@ void main(void) AT(CSTART)
 
 #ifdef FM_ENABLE
         case FM_RADIO_MODE:
-            //deg_puts("-FM Mode\n");
+            deg_puts("-FM Mode\n");
             fm_mode();
             break;
 #endif
-
+/*
         case AUX_MODE:
             deg_puts("-AUX Mode\n");
             Line_in_mode();
             break;
-
+*/
 #ifdef RTC_EN
         case RTC_MODE:
             deg_puts("-RTC Mode\n");
             RTC_mode();
             break;
 #endif
+        case OFF_MODE:
+          deg_puts("OFF_MODE\n");
+          OFF_mode();
+          break;
         default:
-            work_mode = MUSIC_MODE;
+            work_mode = OFF_MODE;
             break;
         }
         set_memory(MEM_SYSMODE, work_mode);

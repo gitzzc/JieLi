@@ -52,40 +52,40 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 
 
 #define ADKEY1_MUSIC_SHORT		\
-                                /*00*/    MSG_MUSIC_PP,\
-							    /*01*/    MSG_MUSIC_NEXT_EQ,\
-								/*02*/    MSG_NEXT_PLAYMODE,\
-								/*03*/    NO_MSG,\
-								/*04*/    NO_MSG,\
-								/*05*/    MSG_MUSIC_NEXT_FILE,\
-								/*06*/    MSG_MUSIC_PREV_FILE,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
-								/*09*/    MSG_MUSIC_PP,
+                                /*00*/    NO_MSG,\
+							    /*01*/    NO_MSG,\
+								/*02*/    NO_MSG,\
+								/*03*/    MSG_MUSIC_PREV_FILE,\
+								/*04*/    MSG_MUSIC_NEXT_FILE,\
+								/*05*/    MSG_MUSIC_PP,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    MSG_CHANGE_WORK_MODE,\
+								/*09*/    MSG_MUTE_UNMUTE,
 
 #define ADKEY1_MUSIC_LONG		\
-                                /*00*/    MSG_NEXT_WORKMODE,\
+                                /*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
 								/*02*/    NO_MSG,\
-								/*03*/    NO_MSG,\
-								/*04*/    NO_MSG,\
-								/*05*/    MSG_MUSIC_FF,\
-								/*06*/    MSG_MUSIC_FR,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
-								/*09*/    NO_MSG,
+								/*03*/    MSG_MUSIC_FR,\
+								/*04*/    MSG_MUSIC_FF,\
+								/*05*/    MSG_MUSIC_PP,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    NO_MSG,\
+								/*09*/    MSG_STOP,
 
 
 #define ADKEY1_MUSIC_HOLD		\
                                 /*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
 								/*02*/    NO_MSG,\
-								/*03*/    NO_MSG,\
-								/*04*/    NO_MSG,\
-								/*05*/    MSG_MUSIC_FF,\
-								/*06*/    MSG_MUSIC_FR,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
+								/*03*/    MSG_MUSIC_FR,\
+								/*04*/    MSG_MUSIC_FF,\
+								/*05*/    MSG_MUSIC_PP,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    NO_MSG,\
 								/*09*/    NO_MSG,
 
 #define ADKEY1_MUSIC_LONG_UP	\
@@ -102,7 +102,7 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 
 const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»»±í
 {
-    /*¶Ì°´*/	    {ADKEY1_MUSIC_SHORT},
+    /*¶Ì°´*/	  {ADKEY1_MUSIC_SHORT},
     /*³¤°´*/		{ADKEY1_MUSIC_LONG},
     /*Á¬°´*/		{ADKEY1_MUSIC_HOLD},
     ///*³¤°´Ì§Æð*/	{ADKEY1_MUSIC_LONG_UP},
@@ -111,37 +111,37 @@ const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»
 #define ADKEY1_FM_SHORT			\
                                 /*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
-								/*02*/    MSG_FM_NEXT_STEP,\
-								/*03*/    MSG_FM_PREV_STEP,\
-								/*04*/    NO_MSG,\
-								/*05*/    MSG_FM_NEXT_STATION,\
-								/*06*/    MSG_FM_PREV_STATION,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
-								/*09*/    NO_MSG,
+								/*02*/    NO_MSG,\
+								/*03*/    MSG_FM_PREV_STATION,\
+								/*04*/    MSG_FM_NEXT_STATION,\
+								/*05*/    NO_MSG,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    MSG_CHANGE_WORK_MODE,\
+								/*09*/    MSG_MUTE_UNMUTE,
 
 #define ADKEY1_FM_LONG			\
-								/*00*/    MSG_NEXT_WORKMODE,\
-                                /*01*/    MSG_FM_SCAN_ALL_INIT,\
-								/*02*/    MSG_FM_NEXT_STEP,\
+								/*00*/    NO_MSG,\
+                                /*01*/    NO_MSG,\
+								/*02*/    NO_MSG,\
 								/*03*/    MSG_FM_PREV_STEP,\
-								/*04*/    NO_MSG,\
-								/*05*/    MSG_FM_SCAN_ALL_UP,\
-								/*06*/    MSG_FM_SCAN_ALL_DOWN,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
-								/*09*/    NO_MSG,
+								/*04*/    MSG_FM_NEXT_STEP,\
+								/*05*/    NO_MSG,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    MSG_FM_SCAN_ALL_INIT,\
+								/*09*/    MSG_STOP,
 
 #define ADKEY1_FM_HOLD			\
 								/*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
-								/*02*/    MSG_FM_NEXT_STEP,\
+								/*02*/    NO_MSG,\
 								/*03*/    MSG_FM_PREV_STEP,\
-								/*04*/    NO_MSG,\
+								/*04*/    MSG_FM_NEXT_STEP,\
 								/*05*/    NO_MSG,\
-								/*06*/    NO_MSG,\
-								/*07*/    MSG_VOL_UP,\
-								/*08*/    MSG_VOL_DOWN,\
+								/*06*/    MSG_VOL_UP,\
+								/*07*/    MSG_VOL_DOWN,\
+								/*08*/    NO_MSG,\
 								/*09*/    NO_MSG,
 
 

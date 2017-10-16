@@ -20,6 +20,8 @@
 #include "hot_msg.h"
 #include "RTC_API.h"
 
+#include "display.h"
+
 
 _no_init UI_VAR _data UI_var;   /*UI 显示变量*/   
 
@@ -89,42 +91,55 @@ _near_func void UI_menu_api(u8 menu) AT(COMMON_CODE)
 #ifdef RTC_ALARM_EN      
     case MENU_ALM_UP:   
 #endif      
-      LED5X7_show_string_menu(UI_var.bCurMenu);
+      //LED5X7_show_string_menu(UI_var.bCurMenu);
       break;
     
     /*-----Common Info UI*/
     case MENU_MAIN_VOL:
-      LED5X7_show_volume();
+      //LED5X7_show_volume();
+      LCD_show_volume();
       break;
       
     case MENU_INPUT_NUMBER:
-      LED5X7_show_IR_number();
+      //LED5X7_show_IR_number();
       break;
       
     /*-----Music Related UI*/
     case MENU_MUSIC_MAIN:
     case MENU_PAUSE:  
-      LED5X7_show_music_main();
+      //LED5X7_show_music_main();
+      LCD_show_music_main();
       break;
     case MENU_FILENUM:
-      LED5X7_show_filenumber();
+      //LED5X7_show_filenumber();
+      LCD_show_filenumber();
       break; 
     case MENU_EQ:
-      LED5X7_show_eq();
+      //LED5X7_show_eq();
       break; 
     case MENU_PLAYMODE:
-      LED5X7_show_playmode();
+      //LED5X7_show_playmode();
       break;
-      
+    case MENU_MUTE:
+      LCD_mute();
+      break;
+    case MENU_UNMUTE:
+      LCD_unmute();
+      break;
+    case MENU_STOP:
+      LCD_stop();
+      break;
     /*-----FM Related UI*/
 #ifdef FM_ENABLE      
     case MENU_FM_MAIN:
     case MENU_FM_DISP_FRE:
-      LED5X7_show_fm_main();
+      //LED5X7_show_fm_main();
+      LCD_show_fm_main();
       break;
     case MENU_FM_FIND_STATION:
     case MENU_FM_CHANNEL:  
-      LED5X7_show_fm_station();
+      deg_puts("MENU_FM_CHANNEL\n");     
+      //LED5X7_show_fm_station();
       break;
 #endif
       
@@ -132,11 +147,11 @@ _near_func void UI_menu_api(u8 menu) AT(COMMON_CODE)
     case MENU_RTC_MAIN:
       RTC_setting_var.bMode = 0;    //模式与界面同步返回  
     case MENU_RTC_SET:  
-      LED5X7_show_RTC_main();
+      //LED5X7_show_RTC_main();
       break;
 #ifdef RTC_ALARM_EN    
     case MENU_ALM_SET:
-      LED5X7_show_alarm();
+      //LED5X7_show_alarm();
       break; 
 #endif
 #endif

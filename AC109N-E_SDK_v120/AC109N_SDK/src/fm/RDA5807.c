@@ -160,8 +160,12 @@ const u8 rda5807mp[] AT(RDA5807_TABLE_CODE)=
 //#elif defined(_SHARE_CRYSTAL_32KHz_)
 //    0xC4,0x01, //02H:
 //#else
+#ifdef SHARE_RTC_OSC_TO_FM
+  0xC4,0x01, //02H:
+#else
     0xC0, 
     0x05,
+#endif
 //#endif
     0x00,
     0x10,
@@ -459,6 +463,8 @@ __root bool RDA5807_Read_ID(void) AT(RDA5807_CODE)
 	delay_n10ms(1);
 	rda5807_read(10);
 	app_IIC_readn(RDA5807_RD_ADDRESS,0xff,(u8 *)rda5807_dat,10);
+  
+   deg("RDA5807_Read_ID %u %u\n",read_dat[8],read_dat[9]);
 
 	if(read_dat[8]==0x58 && read_dat[9]==0x04)	//FM_RDA5807SP
 	{
@@ -482,6 +488,11 @@ __root bool RDA5807_Read_ID(void) AT(RDA5807_CODE)
 		return 0;
 	}
 	return 1; 
+}
+
+__root void RDA5807_setch(u8 db) AT(RDA5807_CODE)
+{
+ db = db; 
 }
 #endif
 

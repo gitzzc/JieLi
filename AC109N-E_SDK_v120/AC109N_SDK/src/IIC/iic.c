@@ -91,7 +91,7 @@ _near_func void iic_data(bool flag) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func void iic_clk_out(void) AT(COMMON_CODE)
 {
-    P0DIR &= ~(1<<3);
+    P0DIR &= ~(1<<0);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -104,7 +104,7 @@ _near_func void iic_clk_out(void) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func void iic_clk(bool flag) AT(COMMON_CODE)
 {
-    P03 = flag;
+    P00 = flag;
 }
 
 
@@ -124,21 +124,28 @@ void iic_init(void) AT(IIC_CODE)
 
 void eeprom_verify(void) AT(IIC_CODE)
 {
+    unsigned char i;
+    
 #ifdef CHECK_EEPROM_ON_POWER_ON   
 	if ((get_memory(0) != 0x55)                 
         ||(get_memory(1) != 0xAA))
 	{
+        //deg_puts("reset EEPROM\n");
         set_memory(0, 0x55);
         set_memory(1, 0xAA);
+        for(i=2;i<MEM_CHANNL;i++)
+          set_memory(i, 0);
     }
     
     if ((get_memory(0) != 0x55)                 
         ||(get_memory(1) != 0xAA))
 	{
         //外接eeprom无效
+        //deg_puts("EEPROM error\n");
     }
     else
     {
+        //deg_puts("EEPROM OK\n");
         //有外接eeprom
         //my_puts("find eeprom\n");
     }

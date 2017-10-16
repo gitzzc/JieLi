@@ -8,9 +8,9 @@
 
 #define ContainOf(x) (sizeof(x)/sizeof(x[0]))
 
-const unsigned int  BatStatus48[10] AT(BIKE_TABLE_CODE) = {420,427,435,444,453,462,471,481};
-const unsigned int  BatStatus60[10] AT(BIKE_TABLE_CODE) = {520,531,544,556,568,577,587,595};
-const unsigned int  BatStatus72[10] AT(BIKE_TABLE_CODE) = {630,642,653,664,675,687,700,715};
+const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {431,436,441,446,451,456,461,466,471,476,481};
+const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,531,544,556,568,570,575,580,585,590,595};
+const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,642,653,664,675,687,700,715};
 
 unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[4];
@@ -81,7 +81,7 @@ int GetTemp(void) AT(BIKE_CODE)
 	long temp;
 	unsigned char i;
 
-	temp = AD_var.wADValue[BIKE_TEMP_ADC];
+	temp = AD_var.wADValue[AD_BIKE_TEMP]>>6;
   
 	temp_buf[index++] = temp;
 	if ( index >= ContainOf(temp_buf) )
@@ -105,15 +105,18 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 	static unsigned char index = 0;
 	unsigned char i;
 	
-	buf[index++] = AD_var.wADValue[BIKE_VOL_ADC];
+	buf[index++] = AD_var.wADValue[AD_BIKE_VOL]>>6;
 	if ( index >= 32 )	index = 0;
 	
-	*vol = (unsigned long)AD_var.wADValue[BIKE_VOL_ADC]*1050UL/1024UL;
+	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*693UL/1024UL+400;
+
+    //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
 
 	for(i=0,mid=0;i<32;i++)	mid += buf[i];
 	mid /= 32;
 	for( i=0;i<32;i++){
-		if ( mid > 5 && ((mid *100 / buf[i]) > 101 ||  (mid *100 / buf[i]) < 99) )
+		//if ( mid > 5 && ((mid *100 / buf[i]) > 101 ||  (mid *100 / buf[i]) < 99) )
+		if ( mid > 5 && ((mid *100 / buf[i]) > 105 ||  (mid *100 / buf[i]) < 95) )
 			return 0;
 	}
 	
@@ -126,8 +129,9 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	unsigned int speed;
 	unsigned char i;
 
-	speed = AD_var.wADValue[BIKE_SPEED_ADC];
-  	
+	speed = AD_var.wADValue[AD_BIKE_SPEED]>>6;
+    //deg("GetSpeed %u\n",AD_var.wADValue[AD_BIKE_SPEED]>>6);
+ 	
 	speed_buf[index++] = speed;
 	if ( index >= ContainOf(speed_buf) )
 		index = 0;
@@ -153,13 +157,18 @@ unsigned char GPIO_Read(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_Pin) AT(BIKE_
 {
 	//GPIO_Init(GPIOx, GPIO_Pin, GPIO_MODE_IN_FL_NO_IT);
 	//return GPIO_ReadInputPin(GPIOx, GPIO_Pin);
-}
-*/
+}*/
+
 void Light_Task(void) AT(BIKE_CODE)
 {
 	unsigned char speed_mode=0;
+	
+	P3HD 	&=~(BIT(2)|BIT(1)|BIT(0));
+    P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
 
-	//if( GPIO_Read(NearLight_PORT, NearLight_PIN	) ) bike.NearLight = 1; else bike.NearLight = 0;
+	if( P30 ) bike.NearLight = 1; else bike.NearLight = 0;
+	if( P31 ) bike.TurnRight = 1; else bike.TurnRight = 0;
+	if( P32 ) bike.TurnLeft  = 1; else bike.TurnLeft  = 0;
 	bike.PHA_Speed = (unsigned long)GetSpeed();
 	bike.Speed = (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale + bike.Speed_dec;
 }
@@ -230,6 +239,7 @@ void InitConfig(void) AT(BIKE_CODE)
 	//bike.SpeedMode = SPEEDMODE_DEFAULT;
 	bike.YXTERR = 1;
 	bike.Speed_dec = 0;
+	bike.bPlayFlash = 0;
 	
 	/*GPIO_Init(VMODE1_PORT, VMODE1_PIN, GPIO_MODE_IN_PU_NO_IT);
 	GPIO_Init(VMODE2_PORT, VMODE2_PIN, GPIO_MODE_IN_PU_NO_IT);
@@ -581,7 +591,7 @@ void bike_task(void) AT(BIKE_CODE)
 {
 	unsigned char i;
 	unsigned int tick;
-	unsigned int count=0;
+	static unsigned int count=0;
 	unsigned int vol=0;
 	static unsigned int task=BIKE_INIT;	
 	
@@ -617,11 +627,13 @@ void bike_task(void) AT(BIKE_CODE)
 
 		if ( bike.HotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
-		} else 
+			deg_puts("BIKE_RESET_WAIT\n");
+		} else {
 			task = BIKE_RUN;
+			deg_puts("BIKE_RUN\n");
+		}
 		break;
 	case BIKE_RESET_WAIT:
-		//deg_puts("BIKE_RESET_WAIT\n");
 		if ( Get_SysTick() > PON_ALLON_TIME ){
 			BL55072_Config(0);
 			task = BIKE_RUN;
@@ -637,8 +649,8 @@ void bike_task(void) AT(BIKE_CODE)
 			
 
 			if ( (count % 4 ) == 0 ){
-				if ( GetVolStabed(&vol) )
-					bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
+				if ( GetVolStabed(&vol) ){}
+				bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
 			}
 			if ( (count % 10) == 0 ){
 			//	bike.Temperature= (long)GetTemp()	*1000UL/config.TempScale;
@@ -658,7 +670,7 @@ void bike_task(void) AT(BIKE_CODE)
 		#endif
       
 		#ifdef LCD_SEG_TEST
-			if ( ++count >= 100 ) count = 0;
+			if ( count >= 100 ) count = 0;
 			bike.Voltage 	= count/10 + count/10*10UL + count/10*100UL + count/10*1000UL;
 			bike.Temperature= count/10 + count/10*10UL + count/10*100UL;
 			bike.Speed		= count/10 + count/10*10;

@@ -176,6 +176,32 @@ u8 get_bit_index(u32 data) AT(MUSIC_PLAY)
     return index;
 }
 #endif
+
+
+void OFF_mode(void) AT(MUSIC_PLAY)
+{
+    while (1)
+    {
+        u8 key;
+
+        key = app_get_msg();
+
+        switch (key)
+        {
+        case MSG_STOP:
+            deg("MSG_STOP\n");
+            work_mode = get_memory(MEM_MEDIAMODE);
+          return;
+        case MSG_100MS:
+            UI_menu(MENU_STOP);
+            bike_task();
+            break;
+        default :
+            break;
+        }
+    }
+}
+
 /*----------------------------------------------------------------------------*/
 /** @brief: Music 模式主循环
     @param: void
@@ -188,6 +214,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
 {
     u8 res;
     bool bres;
+    static bool mute=0;
 
     while (1)
     {
@@ -201,6 +228,8 @@ void music_app_loop(void) AT(MUSIC_PLAY)
         switch (key)
         {
         case MSG_CHANGE_WORK_MODE:
+            deg("MP3 MSG_CHANGE_WORK_MODE\n");
+            work_mode = FM_RADIO_MODE;
 #if defined BREAK_POINT_PLAY_EN && !defined USE_IRTC_MEMORY
             save_music_break_point(device_active);
 #endif
@@ -451,7 +480,26 @@ void music_app_loop(void) AT(MUSIC_PLAY)
 
             input_number = 0;
             break;
-
+        case MSG_MUTE_UNMUTE:
+          if ( mute ){
+            mute = 0;
+            deg("MSG_UNMUTE\n");
+            UI_menu(MENU_UNMUTE);
+            dac_mute(mute);
+          } else {
+            mute = 1;
+            deg("MSG_MUTE\n");
+            UI_menu(MENU_MUTE);
+            dac_mute(mute);
+          }
+          break;
+        case MSG_STOP:
+            deg("MSG_STOP\n");
+            dac_mute(1);
+            set_memory(MEM_MEDIAMODE,work_mode);
+            work_mode = OFF_MODE;
+            UI_menu(MENU_STOP);
+          return;
         default :
             ap_handle_hotkey(key);
             break;
@@ -482,6 +530,7 @@ void music_app(void) AT(MUSIC_PLAY)
     system_clk_div(CLK_24M);
     music_info_init();
     dac_channel_sel(DAC_DECODER);
+    dac_mute(0);
     music_app_loop();
     stop_decode();
     udisk_force_idle();

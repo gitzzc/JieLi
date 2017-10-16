@@ -149,7 +149,7 @@ enum
 /*---------System Charateristic Configuration v100---------------*/
 //#define    IR_REMOTE_EN                 //是否需要红外遥控
 ///<音乐播放功能选择
-#define    LAST_MEM_FILE_PLAY_EN        //是否允许记忆文件序号播放功能
+//#define    LAST_MEM_FILE_PLAY_EN        //是否允许记忆文件序号播放功能
 #ifdef     LAST_MEM_FILE_PLAY_EN
 #define    BREAK_POINT_PLAY_EN			//是否允许断点播放功能
 #endif
@@ -166,7 +166,7 @@ enum
 #define 	UDISK_IDLE_EN                //有些(较少)U盘在此模式下，重新枚举会有问题
 
 
-//#define     USE_EEPROM_MEMORY          //使用EEPROM 作为存储器记忆
+#define     USE_EEPROM_MEMORY          //使用EEPROM 作为存储器记忆
 #ifndef     USE_EEPROM_MEMORY             //使用内部RTC RAM作记忆
 #define     USE_IRTC_MEMORY
 #endif

@@ -26,7 +26,8 @@ typedef enum
     AUX_MODE,
 #ifdef RTC_EN     
     RTC_MODE,
-#endif     
+#endif   
+    OFF_MODE,
     MAX_WORK_MODE,
 }ENUM_WORK_MODE;
 
