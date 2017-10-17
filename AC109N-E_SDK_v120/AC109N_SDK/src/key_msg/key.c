@@ -29,8 +29,8 @@ const u8 ad_table[] AT(TABLE_CODE)=
 {
     0xf7,               ///<高4位为延时，低4位为通道选择
     0xF2,
-    0xF4,
     0xF3,
+    0xF4,
     0xfc,
     0xfd,
     0xfe,

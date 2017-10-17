@@ -27,6 +27,7 @@
 #define RESET_MILE_ENABLE
 //#define	LCD_SEG_TEST
 
+#define BIKE_EEPROM_START   0x80
     
 #ifndef PCB_VER
 	#define PCB_VER	0100

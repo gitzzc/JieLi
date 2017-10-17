@@ -100,11 +100,12 @@ enum
 //#define LCD_128X64_SERIAL
 //#define LCD_128X64_PARALLEL
 //#define LCD_SEG_5X9
-#define LED_5X7
+//#define LED_5X7
+#define LCD_BL55072
 
 #if defined LCD_96X32_SERIAL || defined LCD_128X32_SERIAL \
   || defined LCD_128X64_SERIAL || defined LCD_128X64_PARALLEL \
-    || defined LCD_SEG_4X8 || defined LED_5X7 || defined LCD_SEG_5X9
+    || defined LCD_SEG_4X8 || defined LED_5X7 || defined LCD_SEG_5X9 || defined LCD_BL55072
 #define UI_ENABLE           //UI 界面开关
 
 #ifdef LED_5X7
@@ -177,8 +178,8 @@ enum
 
 
 /*---------System Charateristic Configuration v101---------------*/
-#define RTC_EN                  //<RTC 模式使能控制位
-#define RTC_ALARM_EN            //<RTC 闹钟使能控制位
+//#define RTC_EN                  //<RTC 模式使能控制位
+//#define RTC_ALARM_EN            //<RTC 闹钟使能控制位
 #if (!defined RTC_EN) && (defined RTC_ALARM_EN)
 #error("RTC selectd err!")
 #endif

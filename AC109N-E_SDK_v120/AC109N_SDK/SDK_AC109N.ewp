@@ -2188,12 +2188,6 @@
     <file>
       <name>$PROJ_DIR$\src\User\bike.c</name>
     </file>
-    <file>
-      <name>$PROJ_DIR$\src\User\bl55072.c</name>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\src\User\display_8587.c</name>
-    </file>
   </group>
   <file>
     <name>$PROJ_DIR$\src\clock.c</name>

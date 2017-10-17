@@ -62,7 +62,7 @@ void fm_play(void) AT(FM_CODE)
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
-        		    set_memory(MEM_FRE, 0);
+        		set_memory(MEM_FRE, 0);
                 clear_all_fm_point();
                 fm_mode_var.bTotalChannel = 0;
                 fm_mode_var.bFreChannel = 0;

@@ -1,6 +1,7 @@
 
 #include "config.h"
 #include "key.h"
+#include "iic.h"
 
 #include "bl55072.h"
 #include "display.h"
@@ -8,13 +9,12 @@
 
 #define ContainOf(x) (sizeof(x)/sizeof(x[0]))
 
-const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {431,436,441,446,451,456,461,466,471,476,481};
-const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,531,544,556,568,570,575,580,585,590,595};
-const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,642,653,664,675,687,700,715};
+const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
+const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};
 
 unsigned int _xdata tick_100ms=0;
-unsigned int _xdata speed_buf[4];
-unsigned int _xdata vol_buf[4];
+unsigned int _xdata speed_buf[16];
+unsigned int _xdata vol_buf[32];
 unsigned int _xdata temp_buf[4];
 
 BIKE_STATUS _xdata bike;
@@ -42,6 +42,7 @@ unsigned int Get_ElapseTick(unsigned int pre_tick) AT(BIKE_CODE)
 		return (0xFFFF - pre_tick + tick);
 }
 
+#if 0
 const long NTC_B3450[29][2] = 
 {
 	251783,	-400,	184546,	-350,	137003,	-300,	102936,	-250,	78219,	-200,
@@ -97,6 +98,7 @@ int GetTemp(void) AT(BIKE_CODE)
 	
 	return temp;
 }
+#endif
 
 unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 {
@@ -108,7 +110,7 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 	buf[index++] = AD_var.wADValue[AD_BIKE_VOL]>>6;
 	if ( index >= 32 )	index = 0;
 	
-	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*693UL/1024UL+400;
+	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/10240UL;   //ADC/1024*103.3/3.3V*3.3V
 
     //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
 
@@ -126,44 +128,50 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 unsigned char GetSpeed(void) AT(BIKE_CODE)
 {
 	static unsigned char index = 0;
-	unsigned int speed;
+	unsigned int speed,vol;
 	unsigned char i;
 
-	speed = AD_var.wADValue[AD_BIKE_SPEED]>>6;
+	vol = AD_var.wADValue[AD_BIKE_SPEED]>>6;
     //deg("GetSpeed %u\n",AD_var.wADValue[AD_BIKE_SPEED]>>6);
  	
-	speed_buf[index++] = speed;
+	speed_buf[index++] = vol;
 	if ( index >= ContainOf(speed_buf) )
 		index = 0;
 
-	for(i=0,speed=0;i<ContainOf(speed_buf);i++)
-		speed += speed_buf[i];
-	speed /= ContainOf(speed_buf);
+	for(i=0,vol=0;i<ContainOf(speed_buf);i++)
+		vol += speed_buf[i];
+	vol /= ContainOf(speed_buf);
 	
-	if ( config.SysVoltage	== 48 ){	// speed*5V*21/1024/24V*45 KM/H
-			speed = (unsigned long)speed*1925UL/8192UL;		//24V->55KM/H
-	} else if ( config.SysVoltage	== 60 ) {	// speed*5V*21/1024/30V*45 KM/H
-			speed = (unsigned long)speed*385/2048;			//30V->55KM/H
-	} else if ( config.SysVoltage	== 72 )	{// speed*5V*21/1024/36V*45 KM/H
-			speed = (unsigned long)speed*1925UL/12288UL;	//36V->55KM/H
+	if ( config.SysVoltage	== 48 ){	
+      if ( vol < 210 ){
+		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
+      } else if ( vol < 240 ){  
+		speed = (unsigned long)vol*18078UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*42 KM/H
+      } else/* if ( vol < 270 )*/{  
+		speed = (unsigned long)vol*18364UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/27V*48 KM/H
+      }
+	} else if ( config.SysVoltage	== 60 ) {
+      if ( vol < 260 ){
+		speed = (unsigned long)vol*15098UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/26V*38 KM/H
+      } else if ( vol < 300 ){  
+		speed = (unsigned long)vol*15151UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*44 KM/H
+      } else/* if ( vol < 335 )*/{  
+		speed = (unsigned long)vol*15110UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/33.5V*49 KM/H
+      }
 	}
 	if ( speed > 99 )
 		speed = 99;
 	
   return speed;
 }
-/*
-unsigned char GPIO_Read(GPIO_TypeDef* GPIOx, GPIO_Pin_TypeDef GPIO_Pin) AT(BIKE_CODE)
-{
-	//GPIO_Init(GPIOx, GPIO_Pin, GPIO_MODE_IN_FL_NO_IT);
-	//return GPIO_ReadInputPin(GPIOx, GPIO_Pin);
-}*/
 
 void Light_Task(void) AT(BIKE_CODE)
 {
 	unsigned char speed_mode=0;
 	
-	P3HD 	&=~(BIT(2)|BIT(1)|BIT(0));
+	P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
+	P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
+	P3DIE 	&=~(BIT(2)|BIT(1)|BIT(0));
     P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
 
 	if( P30 ) bike.NearLight = 1; else bike.NearLight = 0;
@@ -190,10 +198,6 @@ void WriteConfig(void) AT(BIKE_CODE)
 	unsigned char *cbuf = (unsigned char *)&config;
 	unsigned char i;
 
-	//FLASH_SetProgrammingTime(FLASH_PROGRAMTIME_STANDARD);
-	//FLASH_Unlock(FLASH_MEMTYPE_DATA);  
-	Delay(5000);
-
 	config.bike[0] = 'b';
 	config.bike[1] = 'i';
 	config.bike[2] = 'k';
@@ -201,11 +205,8 @@ void WriteConfig(void) AT(BIKE_CODE)
 	for(config.Sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		config.Sum += cbuf[i];
 		
-	//for(i=0;i<sizeof(BIKE_CONFIG);i++)
-	//	FLASH_ProgramByte(0x4000+i, cbuf[i]);
-
-	Delay(5000);
-	//FLASH_Lock(FLASH_MEMTYPE_DATA);
+	for(i=0;i<sizeof(BIKE_CONFIG);i++)
+		set_memory(BIKE_EEPROM_START+i,0);
 }
 
 void InitConfig(void) AT(BIKE_CODE)
@@ -213,8 +214,8 @@ void InitConfig(void) AT(BIKE_CODE)
 	unsigned char *cbuf = (unsigned char *)&config;
 	unsigned char i,sum;
 
-	//for(i=0;i<sizeof(BIKE_CONFIG);i++)
-	//	cbuf[i] = FLASH_ReadByte(0x4000 + i);
+	for(i=0;i<sizeof(BIKE_CONFIG);i++)
+		cbuf[i] = get_memory(BIKE_EEPROM_START + i);
 
 	for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		sum += cbuf[i];
@@ -241,18 +242,16 @@ void InitConfig(void) AT(BIKE_CODE)
 	bike.Speed_dec = 0;
 	bike.bPlayFlash = 0;
 	
-	/*GPIO_Init(VMODE1_PORT, VMODE1_PIN, GPIO_MODE_IN_PU_NO_IT);
-	GPIO_Init(VMODE2_PORT, VMODE2_PIN, GPIO_MODE_IN_PU_NO_IT);
-	if ( GPIO_ReadInputPin(VMODE1_PORT, VMODE1_PIN) == RESET ){
-		config.SysVoltage = 72;
-	} else {
-		if ( GPIO_ReadInputPin(VMODE2_PORT, VMODE2_PIN) == RESET ){
-			config.SysVoltage = 48;
-		} else {
-			config.SysVoltage = 60;
-		}
-	}*/
-
+    P3PU    &=~(1<<3);
+    P3PD    &=~(1<<3);
+    P3DIE   &=~(1<<3);
+    P3DIR   |= (1<<3);
+    
+	if ( P33 == 0 ){
+        config.SysVoltage = 48;
+    } else {
+        config.SysVoltage = 60;
+    }
 }
 
 unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
@@ -263,7 +262,6 @@ unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
 	switch ( config.SysVoltage ){
 	case 48:BatStatus = BatStatus48;break;
 	case 60:BatStatus = BatStatus60;break;
-	case 72:BatStatus = BatStatus72;break;
 	default:BatStatus = BatStatus60;break;
 	}
 
@@ -611,7 +609,7 @@ void bike_task(void) AT(BIKE_CODE)
 
 	//	for(i=0;i<32;i++){	GetVol();	/*IWDG_ReloadCounter(); */ }
 	//	for(i=0;i<16;i++){	GetSpeed();	/*IWDG_ReloadCounter(); */ }
-		for(i=0;i<4;i++) {	GetTemp();	/*IWDG_ReloadCounter(); */ }
+	//	for(i=0;i<4;i++) {	GetTemp();	/*IWDG_ReloadCounter(); */ }
 
 		InitConfig();
 		//Calibration();
@@ -623,7 +621,7 @@ void bike_task(void) AT(BIKE_CODE)
   	
 		GetVolStabed(&vol);
 		bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
-		bike.Temperature = GetTemp();
+		//bike.Temperature = GetTemp();
 
 		if ( bike.HotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
@@ -652,10 +650,10 @@ void bike_task(void) AT(BIKE_CODE)
 				if ( GetVolStabed(&vol) ){}
 				bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
 			}
-			if ( (count % 10) == 0 ){
+			//if ( (count % 10) == 0 ){
 			//	bike.Temperature= (long)GetTemp()	*1000UL/config.TempScale;
-				bike.Temperature= GetTemp();
-			}
+			//	bike.Temperature= GetTemp();
+			//}
 			bike.BatStatus 	= GetBatStatus(bike.Voltage);
 		
 			Light_Task();

@@ -275,6 +275,12 @@ void LCD_show_fm_main(void) AT(BIKE_CODE)
     deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
 }
 
+void LCD_show_fm_station(void) AT(BIKE_CODE)
+{
+    /*FM - Station*/
+	bike.uiFM_Channel = fm_mode_var.bFreChannel;
+}
+
 void LCD_show_filenumber(void) AT(BIKE_CODE)
 {  
     /*Music File Number info*/

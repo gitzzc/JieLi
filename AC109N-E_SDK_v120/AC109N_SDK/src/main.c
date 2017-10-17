@@ -29,6 +29,7 @@
 #include "LCD_SEG4X8.h"
 #include "SPI.h"
 #include "LCD_SEG5X9.h"
+#include "bike.h"
 
 
 _no_init void (_near_func * _pdata int_enter_pro[16])(void) AT(INTERRUPT_TABLE);
@@ -304,6 +305,7 @@ void main(void) AT(CSTART)
     sys_init();
     uart_setup();
     clear_all_event();
+    bike_task();
 
     while (1)
     {

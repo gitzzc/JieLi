@@ -38,7 +38,7 @@ _near_func void P05_config(u8 cfg) AT(COMMON_CODE)
     {
         temp = CLK_CON2 & 0xf3;
         CLK_CON2 = temp | cfg | BIT(4);
-        //P0HD |= BIT(5);
+        P0HD |= BIT(5);
         P0DIR &= ~BIT(5);
     }
 }

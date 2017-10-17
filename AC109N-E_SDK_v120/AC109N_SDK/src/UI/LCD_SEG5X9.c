@@ -336,10 +336,12 @@ _near_func static void LCD_SEG5X9_show_dev(void) AT(LCD_SEG_CODE)
 {
     /*Music Device type*/
 
-    if (device_active == DEVICE_SDMMCA)
-      LCD_SEG5X9_var.state[1] |= SD_ICON;
-    else if (device_active == DEVICE_UDISK)
+    if (device_active == DEVICE_UDISK)
      LCD_SEG5X9_var.state[0] |= USB_ICON;
+#ifdef DEVICE_SDMMCA
+    else if (device_active == DEVICE_SDMMCA)
+      LCD_SEG5X9_var.state[1] |= SD_ICON;
+#endif
 }
 
 /*----------------------------------------------------------------------------*/
