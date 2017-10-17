@@ -62,7 +62,7 @@ void fm_play(void) AT(FM_CODE)
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
-        		set_memory(MEM_FRE, 0);
+                set_memory(MEM_FRE, 0);
                 clear_all_fm_point();
                 fm_mode_var.bTotalChannel = 0;
                 fm_mode_var.bFreChannel = 0;
@@ -277,7 +277,7 @@ void fm_mode(void) AT(FM_CODE)
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
-        system_clk_div(CLK_2M);
+        system_clk_div(CLK_1M);
         deg_puts("fm_play\n");
         fm_play();
         dac_channel_sel(DAC_DECODER);

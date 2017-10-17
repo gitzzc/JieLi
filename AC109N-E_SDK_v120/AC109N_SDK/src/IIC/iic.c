@@ -36,7 +36,7 @@ __code const u16 iic_io_tab[8] AT(TABLE_CODE)=
 /*----------------------------------------------------------------------------*/
 _near_func void iic_data_out(void) AT(COMMON_CODE)
 {
-    P0DIR &= ~(1<<1);
+    P0DIR &= ~(1<<2);
 }
 
 
@@ -50,8 +50,8 @@ _near_func void iic_data_out(void) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func void iic_data_in(void) AT(COMMON_CODE)
 {
-    P0DIR |= (1<<1);
-    P0PU |= (1<<1);
+    P0DIR |= (1<<2);
+    P0PU |= (1<<2);
 }
 
 
@@ -65,7 +65,7 @@ _near_func void iic_data_in(void) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func bool iic_data_r(void) AT(COMMON_CODE)
 {
-    return P01;
+    return P02;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -78,7 +78,7 @@ _near_func bool iic_data_r(void) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func void iic_data(bool flag) AT(COMMON_CODE)
 {
-    P01 = flag;
+    P02 = flag;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -125,9 +125,9 @@ void iic_init(void) AT(IIC_CODE)
 void eeprom_verify(void) AT(IIC_CODE)
 {
     unsigned char i;
-    
-#ifdef CHECK_EEPROM_ON_POWER_ON   
-	if ((get_memory(0) != 0x55)                 
+
+#ifdef CHECK_EEPROM_ON_POWER_ON
+	if ((get_memory(0) != 0x55)
         ||(get_memory(1) != 0xAA))
 	{
         //deg_puts("reset EEPROM\n");
@@ -136,8 +136,8 @@ void eeprom_verify(void) AT(IIC_CODE)
         for(i=2;i<MEM_CHANNL;i++)
           set_memory(i, 0);
     }
-    
-    if ((get_memory(0) != 0x55)                 
+
+    if ((get_memory(0) != 0x55)
         ||(get_memory(1) != 0xAA))
 	{
         //外接eeprom无效
@@ -150,7 +150,7 @@ void eeprom_verify(void) AT(IIC_CODE)
         //my_puts("find eeprom\n");
     }
 #endif
-    
+
 }
 /*----------------------------------------------------------------------------*/
 /** @brief: 记忆信息到存储器（EEPROM）

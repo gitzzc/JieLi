@@ -216,6 +216,8 @@ void music_app_loop(void) AT(MUSIC_PLAY)
     bool bres;
     static bool mute=0;
 
+    UI_menu(MENU_MAIN);
+
     while (1)
     {
         u8 key;

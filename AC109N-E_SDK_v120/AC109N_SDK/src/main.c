@@ -105,9 +105,9 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
         key_scan();
         dec_delay_counter();
     }
-    if ((cnt % 50) == 0) 
+    if ((cnt % 50) == 0)
     {
-        put_msg_fifo(MSG_100MS);      
+        put_msg_fifo(MSG_100MS);
     }
     if ((cnt % 250) == 0)
     {
@@ -303,7 +303,7 @@ void main(void) AT(CSTART)
     config_wdt(0x5D);           //enable WDT 8S,如果改成4S,有些慢U盘会导致看门狗复位
 #endif
     sys_init();
-    uart_setup();
+    //uart_setup();
     clear_all_event();
     bike_task();
 

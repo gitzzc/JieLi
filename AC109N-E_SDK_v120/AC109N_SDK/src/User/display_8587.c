@@ -45,7 +45,7 @@ const unsigned char _code SegDataSpeed[10] AT(BIKE_TABLE_CODE)  = {0xF5,0x60,0xD
 void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 {
 	unsigned char i = 0;
-  
+
 	flashflag++;
 	flashflag %= 10;
 	
@@ -55,14 +55,14 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		TL_Flash++;
 		TL_Flash %= 10;
 		if ( TL_Flash < 5 ) LCD_LEFT();
-	} else 
+	} else
 		TL_Flash = 0;
 	
 	if( bike->TurnRight	){
 		TR_Flash++;
 		TR_Flash %= 10;
 		if ( TR_Flash < 5 ) LCD_RIGHT();
-	} else 
+	} else
 		TR_Flash = 0;
 	
 	if( bike->NearLight 	) LCD_LIGHT();
@@ -71,34 +71,34 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	BL_Data[15] |= 0x80;	//T0
 	switch ( bike->BatStatus ){
     case 0:
-		if ( flashflag < 5 ) 
+		if ( flashflag < 5 )
 			BL_Data[15] &= 0x7F;break;	//T0
     case 1: BL_Data[ 8] |= 0x10;break;	//T10
     case 2: BL_Data[ 8] |= 0x30;break;
     case 3: BL_Data[ 8] |= 0x70;break;
     case 4: BL_Data[ 8] |= 0xF0;break;
     case 5: BL_Data[ 8] |= 0xF8;break;
-    case 6: BL_Data[ 8] |= 0xFC;break;      
+    case 6: BL_Data[ 8] |= 0xFC;break;
     case 7: BL_Data[ 8] |= 0xFE;break;
-    case 8: BL_Data[ 8] |= 0xFF;break;          
-    case 9: BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x10;break;          
-    default:BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x30;break;   
+    case 8: BL_Data[ 8] |= 0xFF;break;
+    case 9: BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x10;break;
+    default:BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x30;break;
 	}
 
 	/***************************Temp Area Display**********************************/
 /*	BL_Data[ 7] |= SegDataVoltage[abs(bike->Temperature/100))%10];
 	BL_Data[ 6] |= SegDataVoltage[abs(bike->Temperature/10 ))%10];
-	BL_Data[ 4] |= SegDataVoltage[abs(bike->Temperature%10	 	] & 0xF0);       
-	BL_Data[ 3] |= SegDataVoltage[abs(bike->Temperature%10	 	] & 0x0F);       
+	BL_Data[ 4] |= SegDataVoltage[abs(bike->Temperature%10	 	] & 0xF0);
+	BL_Data[ 3] |= SegDataVoltage[abs(bike->Temperature%10	 	] & 0x0F);
 	LCD_DEGREE();
 	if (bike->Temperature < 0)
-		LCD_DEGREE_NIG(); 
+		LCD_DEGREE_NIG();
 */	
 	/*************************** Voltage Display**********************************/
 	BL_Data[ 7] |= SegDataVoltage[(bike->Voltage/100)%10];
 	BL_Data[ 6] |= SegDataVoltage[(bike->Voltage/10	)%10];
 	BL_Data[ 4] |= SegDataVoltage[(bike->Voltage	)%10] & 0xF0;
-	BL_Data[ 3] |= SegDataVoltage[(bike->Voltage	)%10] & 0x0F;     
+	BL_Data[ 3] |= SegDataVoltage[(bike->Voltage	)%10] & 0x0F;
 	LCD_V();LCD_VDOT();	
 		
 	/***************************Time Area Display**********************************/
@@ -115,26 +115,26 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		BL_Data[12] |= 0x00;
 		BL_Data[11] |= 0x7A;
 		BL_Data[17] |= ( SegDataTime[(bike->uiValue/10)%10] );
-		BL_Data[16] |= ( SegDataTime[ bike->uiValue%10	  ] );     
+		BL_Data[16] |= ( SegDataTime[ bike->uiValue%10	  ] );
 	} else {
 		if ( bike->uiPlayMedia == MEDIA_USB ){
 			if ( bike->uiPlayTime < 3 ){
 				BL_Data[12] |= SegDataTime[(bike->uiFileNO/1000		)%10];
 				BL_Data[11] |= SegDataTime[(bike->uiFileNO/100		)%10];
 				BL_Data[17] |= SegDataTime[(bike->uiFileNO/10		)%10];
-				BL_Data[16] |= SegDataTime[ bike->uiFileNO%10			];       
+				BL_Data[16] |= SegDataTime[ bike->uiFileNO%10			];
 			} else {
 				BL_Data[12] |= SegDataTime[( bike->uiPlayTime/60/10	)%10];
 				BL_Data[11] |= SegDataTime[( bike->uiPlayTime/60	)%10];
 				BL_Data[17] |= SegDataTime[((bike->uiPlayTime%60)/10)%10];
-				BL_Data[16] |= SegDataTime[  bike->uiPlayTime%10		];  
+				BL_Data[16] |= SegDataTime[  bike->uiPlayTime%10		];
 				LCD_SEC();				
 			}
 			if ( bike->uiPlayStatus == MAD_PAUSE ){
 				BL_Data[12] = 0xCE;	//'P'
 				BL_Data[11] = 0xEE;	//'A'
 				BL_Data[17] = 0x7A;	//'U'
-				BL_Data[16] = 0xBC;	//'S'  
+				BL_Data[16] = 0xBC;	//'S'
 			}
 		} else if ( bike->uiPlayMedia == MEDIA_FM ){
 			//if ( bike->uiPlayTime <= 3 )
@@ -142,12 +142,12 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 				BL_Data[12] |= SegDataTime[(bike->uiFM_Freq/1000	)%10];
 				BL_Data[11] |= SegDataTime[(bike->uiFM_Freq/100		)%10];
 				BL_Data[17] |= SegDataTime[(bike->uiFM_Freq/10		)%10];
-				BL_Data[16] |= SegDataTime[ bike->uiFM_Freq%10			];   
+				BL_Data[16] |= SegDataTime[ bike->uiFM_Freq%10			];
 			} /*else {
 				BL_Data[12] |= SegDataTime[(bike->uiFM_Channel/1000	)%10];
 				BL_Data[11] |= SegDataTime[(bike->uiFM_Channel/100 	)%10];
 				BL_Data[17] |= SegDataTime[(bike->uiFM_Channel/10	)%10];
-				BL_Data[16] |= SegDataTime[ bike->uiFM_Channel%10		];   
+				BL_Data[16] |= SegDataTime[ bike->uiFM_Channel%10		];
 			}			*/
 		} else if ( bike->uiPlayMedia == MEDIA_OFF ){
             //BL_Data[12] |= SegDataTime[];' '
@@ -160,8 +160,8 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		if ( flashflag < 5  ) {
 			BL_Data[12] &= 0x01;
 			BL_Data[11] &= 0x01;
-			BL_Data[17] &= 0x00; 
-			BL_Data[16] &= 0x01; 
+			BL_Data[17] &= 0x00;
+			BL_Data[16] &= 0x01;
 		}
 	}
 
@@ -171,7 +171,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		BL_Data[12] |= ( SegDataTime[bike->Hour/10]);
 		BL_Data[11] |= ( SegDataTime[bike->Hour%10]);
 		BL_Data[17] |= ( SegDataTime[bike->Minute/10] );
-		BL_Data[16] |= ( SegDataTime[bike->Minute%10] );       
+		BL_Data[16] |= ( SegDataTime[bike->Minute%10] );
 		if ( bike->time_set ){
 			switch ( bike->time_pos ){
 			case 0:if ( flashflag < 5 ) BL_Data[12] &= 0x08; break;			
@@ -184,24 +184,24 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		} else if ( flashflag < 5 ) LCD_SEC();	//col
 	}*/
 	
-	/*************************** Mile Display**********************************/  
+	/*************************** Mile Display**********************************/
 	LCD_KM();	
-	BL_Data[ 5] |= SegDataMile [(bike->Mile/10000)%10] & 0xF0; 
-	BL_Data[ 4] |= SegDataMile [(bike->Mile/10000)%10] & 0x0F; 
+	BL_Data[ 5] |= SegDataMile [(bike->Mile/10000)%10] & 0xF0;
+	BL_Data[ 4] |= SegDataMile [(bike->Mile/10000)%10] & 0x0F;
 	BL_Data[ 0] |= SegDataMile [(bike->Mile/1000 )%10] & 0xF0;
 	BL_Data[ 5] |= SegDataMile [(bike->Mile/1000 )%10] & 0x0F;
-	BL_Data[ 1] |= SegDataMile [(bike->Mile/100  )%10] & 0xF0; 
-	BL_Data[ 0] |= SegDataMile [(bike->Mile/100  )%10] & 0x0F; 
+	BL_Data[ 1] |= SegDataMile [(bike->Mile/100  )%10] & 0xF0;
+	BL_Data[ 0] |= SegDataMile [(bike->Mile/100  )%10] & 0x0F;
 	BL_Data[ 2] |= SegDataMile [(bike->Mile/10   )%10] & 0xF0;
-	BL_Data[ 1] |= SegDataMile [(bike->Mile/10   )%10] & 0x0F; 
+	BL_Data[ 1] |= SegDataMile [(bike->Mile/10   )%10] & 0x0F;
 	BL_Data[ 3] |= SegDataMile [(bike->Mile   	 )%10] & 0xF0;
-	BL_Data[ 2] |= SegDataMile [(bike->Mile	     )%10] & 0x0F; 
+	BL_Data[ 2] |= SegDataMile [(bike->Mile	     )%10] & 0x0F;
 	if ( bike->MileFlash ){
 		if ( flashflag < 5  ) {
 			BL_Data[ 4] &= 0x01;
 			BL_Data[ 5] &= 0x01;
-			BL_Data[ 0] &= 0x01; 
-			BL_Data[ 1] &= 0x01; 
+			BL_Data[ 0] &= 0x01;
+			BL_Data[ 1] &= 0x01;
 			BL_Data[ 2] &= 0x01;
 		}
 	}
@@ -209,11 +209,11 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	/*************************** Speed Display**********************************/
 	LCD_KMH();
 	BL_Data[14] |= (SegDataSpeed[bike->Speed/10]);
-	BL_Data[13] |= (SegDataSpeed[bike->Speed%10]); 
+	BL_Data[13] |= (SegDataSpeed[bike->Speed%10]);
 	if ( bike->SpeedFlash ){
 		if ( flashflag < 5  ) {
 			BL_Data[14] &= 0x01;
-			BL_Data[13] &= 0X01; 
+			BL_Data[13] &= 0X01;
 		}
 	}
 
@@ -227,7 +227,7 @@ void Delay(unsigned long nCount) AT(BIKE_CODE)
 }
 
 void LCD_show_volume(void) AT(BIKE_CODE)
-{   
+{
 	bike.bShowVol = 1;
 	bike.uiValue  = main_vol_L;
 	if ( bike.uiValue > 30 )
@@ -250,12 +250,12 @@ void LCD_show_dev(void) AT(BIKE_CODE)
 void LCD_show_music_main(void) AT(BIKE_CODE)
 {
     u16 play_time;
-    
+
     /*Music Play time info*/
     bike.uiPlayTime = get_music_play_time();
 	bike.bShowVol = 0;
 	bike.uiPlayMedia = MEDIA_USB;
-    
+
     //LCD_show_dev();
     bike.uiPlayStatus = Music_Play_var.bPlayStatus;
 	if ( bike.uiPlayStatus == MAD_PAUSE ){
@@ -282,7 +282,7 @@ void LCD_show_fm_station(void) AT(BIKE_CODE)
 }
 
 void LCD_show_filenumber(void) AT(BIKE_CODE)
-{  
+{
     /*Music File Number info*/
 	bike.uiPlayTime = 0;
 	bike.bShowVol = 0;

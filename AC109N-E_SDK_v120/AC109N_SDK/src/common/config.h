@@ -150,7 +150,7 @@ enum
 /*---------System Charateristic Configuration v100---------------*/
 //#define    IR_REMOTE_EN                 //是否需要红外遥控
 ///<音乐播放功能选择
-//#define    LAST_MEM_FILE_PLAY_EN        //是否允许记忆文件序号播放功能
+#define    LAST_MEM_FILE_PLAY_EN        //是否允许记忆文件序号播放功能
 #ifdef     LAST_MEM_FILE_PLAY_EN
 #define    BREAK_POINT_PLAY_EN			//是否允许断点播放功能
 #endif

@@ -20,7 +20,7 @@
 #include "LCD_SEG5X9.c"
 #include "RTC_API.h"
 
-_no_init UI_VAR _data UI_var;   /*UI 显示变量*/   
+_no_init UI_VAR _data UI_var;   /*UI 显示变量*/
 
 /*----------------------------------------------------------------------------*/
 /**@brief   UI 显示界面处理函数
@@ -30,9 +30,9 @@ _no_init UI_VAR _data UI_var;   /*UI 显示变量*/
 */
 /*----------------------------------------------------------------------------*/
 _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
-{    
+{
     /*界面属性-非主界面自动返回*/
-    if (menu == MENU_MAIN)                  
+    if (menu == MENU_MAIN)
     {
         if (UI_var.bMenuReturnCnt)
         {
@@ -51,7 +51,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
             /*等待界面不重复刷新界面*/
             if (UI_var.bCurMenu == UI_var.bMainMenu)
                 return;
-            UI_var.bCurMenu = UI_var.bMainMenu;   
+            UI_var.bCurMenu = UI_var.bMainMenu;
         }
     }
     else
@@ -159,7 +159,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
     LCD_drive5X9_12();
 }
 
-#else defined (LCD_BL55072)
+#else defined LCD_BL55072
 
 #include "msg.h"
 #include "get_music_file.h"
@@ -170,7 +170,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
 #include "display_8587.c"
 #include "RTC_API.h"
 
-_no_init UI_VAR _data UI_var;   /*UI 显示变量*/   
+_no_init UI_VAR _data UI_var;   /*UI 显示变量*/
 
 /*----------------------------------------------------------------------------*/
 /**@brief   UI 显示界面处理函数
@@ -180,9 +180,9 @@ _no_init UI_VAR _data UI_var;   /*UI 显示变量*/
 */
 /*----------------------------------------------------------------------------*/
 _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
-{    
+{
     /*界面属性-非主界面自动返回*/
-    if (menu == MENU_MAIN)                  
+    if (menu == MENU_MAIN)
     {
         if (UI_var.bMenuReturnCnt)
         {
@@ -201,7 +201,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
             /*等待界面不重复刷新界面*/
             if (UI_var.bCurMenu == UI_var.bMainMenu)
                 return;
-            UI_var.bCurMenu = UI_var.bMainMenu;   
+            UI_var.bCurMenu = UI_var.bMainMenu;
         }
     }
     else
