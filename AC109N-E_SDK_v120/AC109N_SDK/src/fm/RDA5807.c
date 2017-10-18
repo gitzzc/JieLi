@@ -166,11 +166,12 @@ const u8 rda5807mp[] AT(RDA5807_TABLE_CODE)=
     0xC0,0x05,
 #endif
 //#endif
-    0x00,0x10,
+    0x00,0x10,  //87-108M ,100HZ
     0x04,0x00,
     RDA5807_RSSI | 0xC0, 0xBF, //05h
     0x60,0x00,
     0x42,0x1A,//11
+    
     0x00,0x00,
     0x00,0x00,
     0x00,0x00,  //0x0ah
@@ -279,7 +280,6 @@ void rda5807sp_init(void) AT(RDA5807_CODE)
 void rda5807mp_init(void) AT(RDA5807_CODE)
 {	
    app_IIC_write(RDA5807_WR_ADDRESS, 0xff, (u8 *)rda5807mp, 72);
-
 }
 
 /*----------------------------------------------------------------------------*/
@@ -327,6 +327,7 @@ __root void init_RDA5807(void) AT(RDA5807_CODE)
 	rda5807_write(12);
 	delay_n10ms(5);
 
+#if 0 
 	/*
 #if 1
 	rda5807_dat[7] &=~0x0F;
@@ -347,6 +348,7 @@ __root void init_RDA5807(void) AT(RDA5807_CODE)
 	}
 		
 	delay_n10ms(5);
+#endif
 }
 
 /*----------------------------------------------------------------------------*/

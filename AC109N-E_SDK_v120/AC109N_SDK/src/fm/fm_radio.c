@@ -49,7 +49,6 @@ void fm_play(void) AT(FM_CODE)
             work_mode = MUSIC_MODE;
             return ;
         case MSG_CHANGE_WORK_MODE:
-            deg("FM MSG_CHANGE_WORK_MODE\n");
             work_mode = MUSIC_MODE;
             return;
 
@@ -106,24 +105,22 @@ void fm_play(void) AT(FM_CODE)
             }
             else                                                    //搜索过程中只响应事件
             {
-                put_msg_lifo(MSG_FM_SCAN_ALL);
+                //put_msg_lifo(MSG_FM_SCAN_ALL);
+                put_msg_fifo(MSG_FM_SCAN_ALL);
             }
 			break;
 
         case MSG_FM_SCAN_ALL_DOWN:
-            deg("MSG_FM_SCAN_ALL_DOWN\n");
             scan_mode = FM_SCAN_PREV;		
             put_msg_lifo(MSG_FM_SCAN_ALL);
             break;
 
         case MSG_FM_SCAN_ALL_UP:
-            deg("MSG_FM_SCAN_ALL_UP\n");
             scan_mode = FM_SCAN_NEXT;
             put_msg_lifo(MSG_FM_SCAN_ALL);
 			break;
 
         case MSG_FM_PREV_STEP:
-            deg("MSG_FM_PREV_STEP\n");
             flush_all_msg();
             set_fre(FM_FRE_DEC);
             fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);						//查找该频点是否有记忆过
@@ -134,7 +131,6 @@ void fm_play(void) AT(FM_CODE)
             break;
 
         case MSG_FM_NEXT_STEP:
-            deg("MSG_FM_NEXT_STEP\n");
             flush_all_msg();
             set_fre(FM_FRE_INC);
             fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);						//查找该频点是否有记忆过
@@ -145,7 +141,6 @@ void fm_play(void) AT(FM_CODE)
             break;
 
         case MSG_FM_PREV_STATION:
-            deg("MSG_FM_PREV_STATION\n");
             flush_all_msg();
             if (fm_mode_var.bTotalChannel == 0)
             {
@@ -154,7 +149,6 @@ void fm_play(void) AT(FM_CODE)
             }
             fm_mode_var.bFreChannel -= 2;
         case MSG_FM_NEXT_STATION:
-            deg("MSG_FM_NEXT_STATION\n");
             if (fm_mode_var.bTotalChannel == 0)
             {
                 fm_module_mute(0);
@@ -174,9 +168,9 @@ void fm_play(void) AT(FM_CODE)
             fm_mode_var.wFreq = get_fre_via_channle(fm_mode_var.bFreChannel) + MIN_FRE;				//根据台号找频点
             set_fre(FM_CUR_FRE);
             set_memory(MEM_FRE, fm_mode_var.wFreq - MIN_FRE);
-			      set_memory(MEM_CHAN, fm_mode_var.bFreChannel);
-			      fm_module_mute(0);
-			      UI_menu(MENU_FM_CHANNEL);
+            set_memory(MEM_CHAN, fm_mode_var.bFreChannel);
+            fm_module_mute(0);
+            UI_menu(MENU_FM_CHANNEL);
             break;
 
         case MSG_CH_SAVE:
@@ -187,12 +181,11 @@ void fm_play(void) AT(FM_CODE)
             bike_task();
             break;
         case MSG_HALF_SECOND:
-             LED_FADE_OFF();
+            LED_FADE_OFF();
             UI_menu(MENU_MAIN);
             break;
 
         case MSG_MUSIC_PP:
-            deg("MSG_MUSIC_PP\n");
 #ifdef UI_ENABLE
             if (UI_var.bCurMenu == MENU_INPUT_NUMBER)   //暂停和播放
             {
@@ -243,7 +236,6 @@ void fm_play(void) AT(FM_CODE)
           }
           break;
         case MSG_STOP:
-            deg("MSG_STOP\n");
             dac_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
             work_mode = OFF_MODE;
@@ -272,18 +264,23 @@ void fm_mode(void) AT(FM_CODE)
 
     if (init_fm_rev())
     {
+        P2PD  |= BIT(5);
+        P2DIE |= BIT(5);
+        P2DIR &=~BIT(5);
+        P25    = 0;
         deg_puts("init_fm_rev ok\n");
         P2HD &= ~0x7;
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
-        system_clk_div(CLK_1M);
+        system_clk_div(CLK_24M);
         deg_puts("fm_play\n");
         fm_play();
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();
         sd_chk_ctl(SET_SD_CHK_STEP, 20);
         P2HD |= 0x7;
+        P25    = 1;
     }
     else					// no fm module
     {

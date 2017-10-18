@@ -110,7 +110,7 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 	buf[index++] = AD_var.wADValue[AD_BIKE_VOL]>>6;
 	if ( index >= 32 )	index = 0;
 	
-	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/10240UL;   //ADC/1024*103.3/3.3V*3.3V
+	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
 
     //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
 
@@ -165,18 +165,65 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
   return speed;
 }
 
+void LRFlash_Task(void)
+{
+	static unsigned int left_count=0,right_count=0;
+  
+	if ( P32 ){
+		if ( left_count < 20 ){
+			left_count += 2;
+		} else if ( left_count < 100 ){
+			left_count += 2;
+			bike.TurnLeft = 1;
+		} else {
+			left_count = 100;
+		}
+	} else {
+		if ( left_count )
+			left_count --;
+		if ( left_count == 0 )
+			bike.TurnLeft = 0; 
+	}
+	
+	if ( P31 ){
+		if ( right_count < 20 ){
+			right_count += 2;
+		} else if ( right_count < 100 ){
+			right_count += 2;
+			bike.TurnRight = 1;
+		} else {
+			right_count = 100;
+		}
+	} else {
+		if ( right_count )
+			right_count --;
+		if ( right_count == 0 )
+			bike.TurnRight = 0; 
+	}	 
+}
+
 void Light_Task(void) AT(BIKE_CODE)
 {
 	unsigned char speed_mode=0;
 	
 	P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
 	P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
-	P3DIE 	&=~(BIT(2)|BIT(1)|BIT(0));
+	P3DIE 	|= (BIT(2)|BIT(1)|BIT(0));
     P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
 
-	if( P30 ) bike.NearLight = 1; else bike.NearLight = 0;
-	if( P31 ) bike.TurnRight = 1; else bike.TurnRight = 0;
-	if( P32 ) bike.TurnLeft  = 1; else bike.TurnLeft  = 0;
+    if( P30 ) {
+      bike.NearLight = 1; 
+      P2PU  |= BIT(0);
+      P2DIR &=~BIT(0);
+      P20    = 0;
+    } else {
+      bike.NearLight = 0;
+      P2PU  |= BIT(0);
+      P2DIR &=~BIT(0);
+      P20    = 1;
+    }
+	//if( P31 ) bike.TurnRight = 1; else bike.TurnRight = 0;
+	//if( P32 ) bike.TurnLeft  = 1; else bike.TurnLeft  = 0;
 	bike.PHA_Speed = (unsigned long)GetSpeed();
 	bike.Speed = (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale + bike.Speed_dec;
 }
@@ -244,7 +291,7 @@ void InitConfig(void) AT(BIKE_CODE)
 	
     P3PU    &=~(1<<3);
     P3PD    &=~(1<<3);
-    P3DIE   &=~(1<<3);
+    P3DIE   |= (1<<3);
     P3DIR   |= (1<<3);
     
 	if ( P33 == 0 ){

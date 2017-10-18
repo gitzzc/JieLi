@@ -535,6 +535,10 @@ void dac_mute(bool flag) AT(DAC_CODE)
 {
     if (flag)
     {
+        P2PU  |= BIT(4);
+        P2DIE |= BIT(4);
+        P2DIR &=~BIT(4);
+        P24    = 1;
         mute = 1;
         dac_fade_out();
 		set_digital_vol(0, 0);
@@ -542,6 +546,10 @@ void dac_mute(bool flag) AT(DAC_CODE)
     }
     else
     {
+        P2PU  |= BIT(4);
+        P2DIE |= BIT(4);
+        P2DIR &=~BIT(4);
+        P24    = 0;
         mute = 0;
         set_digital_vol(main_vol_L, main_vol_R);
         dac_fade_in();

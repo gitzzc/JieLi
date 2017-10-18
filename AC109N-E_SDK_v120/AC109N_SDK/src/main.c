@@ -104,6 +104,7 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
         //USB_online_otp();
         key_scan();
         dec_delay_counter();
+        LRFlash_Task();
     }
     if ((cnt % 50) == 0)
     {
@@ -270,7 +271,7 @@ static void sys_init(void) AT(CSTART)
     EA = 1;
 
     /*Wait Device steady Plug In...*/
-    delay_n10ms(20);
+    //delay_n10ms(20);
 
     /*PLL初始化，会关总中断*/
 	pll_init();

@@ -303,6 +303,15 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
       break;
 #endif
 #endif
+    case MENU_MUTE:
+      LCD_mute();
+      break;
+    case MENU_UNMUTE:
+      LCD_unmute();
+      break;
+    case MENU_STOP:
+      LCD_stop();
+      break;
     default:
       break;
     }

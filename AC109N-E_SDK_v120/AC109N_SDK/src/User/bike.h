@@ -91,6 +91,7 @@ typedef struct {
 	unsigned long FMile;
 	unsigned int  Tick;
 	unsigned int  uiPlayTime;
+	unsigned int  uiShowFileNO;
 	unsigned int  uiPlayMedia;
 	unsigned int  uiValue;
 	unsigned int  uiFileNO;
@@ -122,6 +123,7 @@ extern BIKE_CONFIG config;
 unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);
+void LRFlash_Task(void);
 
 /******************************************************************************/
 

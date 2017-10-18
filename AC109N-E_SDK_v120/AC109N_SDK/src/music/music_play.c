@@ -230,7 +230,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
         switch (key)
         {
         case MSG_CHANGE_WORK_MODE:
-            deg("MP3 MSG_CHANGE_WORK_MODE\n");
+            //deg("MP3 MSG_CHANGE_WORK_MODE\n");
             work_mode = FM_RADIO_MODE;
 #if defined BREAK_POINT_PLAY_EN && !defined USE_IRTC_MEMORY
             save_music_break_point(device_active);

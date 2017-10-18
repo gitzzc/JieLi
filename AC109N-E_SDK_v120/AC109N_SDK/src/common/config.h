@@ -217,5 +217,7 @@ enum
 #define P04_TOGGLE       P0DIR &= ~BIT(4); P04 = ~P04
 #define P05_TOGGLE       P0DIR &= ~BIT(5); P05 = ~P05
 
+//#define IIC_DAT_USE_P02
+
 #endif
 
