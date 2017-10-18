@@ -20,9 +20,9 @@ void RDA5807_mute(u8 dir);
 bool RDA5807_Read_ID(void);
 void RDA5807_setch(u8 db);
 
-extern u8 _idata rda5807_dat[12];
-extern u8 _xdata read_dat[10];
-extern u8 _xdata fm_type;
+extern u8  rda5807_dat[12];
+extern u8  read_dat[10];
+extern u8  fm_type;
 
 #define RDA5807_WR_ADDRESS  0x20       ///<RDA5807 Ð´µØÖ·
 #define RDA5807_RD_ADDRESS  0x21       ///<RDA5807 ¶ÁµØÖ·

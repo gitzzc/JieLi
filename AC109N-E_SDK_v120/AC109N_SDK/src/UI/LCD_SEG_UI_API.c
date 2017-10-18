@@ -187,6 +187,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
         if (UI_var.bMenuReturnCnt)
         {
             UI_var.bMenuReturnCnt++;
+             //deg_puts("bMenuReturnCnt ++\n");
             if (UI_var.bMenuReturnCnt > UI_RETURN)
             {
                 if (UI_var.bCurMenu == MENU_INPUT_NUMBER)
@@ -199,8 +200,8 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
         else
         {
             /*等待界面不重复刷新界面*/
-            if (UI_var.bCurMenu == UI_var.bMainMenu)
-                return;
+            //if (UI_var.bCurMenu == UI_var.bMainMenu)
+            //    return;
             UI_var.bCurMenu = UI_var.bMainMenu;
         }
     }
@@ -216,6 +217,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
             UI_var.bCurMenu = menu;
             if (menu != UI_var.bMainMenu)
             {
+                //deg_puts("bMenuReturnCnt = 1\n");
                 UI_var.bMenuReturnCnt = 0x1;   //非主界面开始返回计数
             }
             if (menu != MENU_INPUT_NUMBER)

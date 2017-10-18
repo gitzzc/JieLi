@@ -181,6 +181,7 @@ void fm_play(void) AT(FM_CODE)
             bike_task();
             break;
         case MSG_HALF_SECOND:
+            //deg("MSG_HALF_SECOND\n");
             LED_FADE_OFF();
             UI_menu(MENU_MAIN);
             break;
@@ -273,7 +274,7 @@ void fm_mode(void) AT(FM_CODE)
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
-        system_clk_div(CLK_24M);
+        system_clk_div(CLK_2M);
         deg_puts("fm_play\n");
         fm_play();
         dac_channel_sel(DAC_DECODER);

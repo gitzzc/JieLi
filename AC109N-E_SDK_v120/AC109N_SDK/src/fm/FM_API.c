@@ -9,6 +9,7 @@
 /*----------------------------------------------------------------------------*/
 #include "FM_API.h"
 #include "fm_radio.h"
+#include "dac.h"
 
 #ifdef FM_ENABLE
 
@@ -57,7 +58,7 @@ void (* const fm_init[])(void) AT(FM_TABLE_CODE) =
 #ifdef	QN8035
     init_QN8035,
 #endif
-      
+
 #ifdef	AR1019
     init_AR1019,
 #endif
@@ -180,7 +181,7 @@ void (* const fm_setch[])(u8) AT(FM_TABLE_CODE)=
 #ifdef	AR1019
     AR1019_setch,
 #endif
-  
+
 };
 
 
@@ -201,7 +202,7 @@ bool init_fm_rev(void) AT(FM_CODE)
             return TRUE;
         }
     }
-    
+
     return FALSE;
 }
 
@@ -229,7 +230,7 @@ void fm_rev_powerdown(void) AT(FM_CODE)
 bool set_fre(u8 mode) AT(FM_CODE)
 {
     fm_module_mute(1);
-    
+
     if (mode == FM_FRE_INC)
     {
         fm_mode_var.wFreq++;
@@ -242,7 +243,7 @@ bool set_fre(u8 mode) AT(FM_CODE)
         fm_mode_var.wFreq = MIN_FRE;
     if (fm_mode_var.wFreq < MIN_FRE)
         fm_mode_var.wFreq = MAX_FRE;
-        
+
     return (* fm_set_fre[fm_mode_var.bAddr])(fm_mode_var.wFreq);
 }
 
@@ -299,7 +300,7 @@ u8 get_fre_via_channle(u8 channel) AT(FM_CODE)
     for (i = 0; i < MEM_FM_LEN; i++)
     {
         j = get_memory(MEM_CHANNL + i);
-        
+
         for (k = 0; k < 8; k++)
         {
             if (j & (BIT(k)))
@@ -424,7 +425,7 @@ void fm_info_init(void) AT(FM_CODE)
     Sys_IRInput = 1;
     Sys_Volume = 1;
     key_table_sel(1);
-    
+
     fm_mode_var.wFreq = get_memory(MEM_FRE);
 
     if (fm_mode_var.wFreq > (MAX_FRE - MIN_FRE))
@@ -437,14 +438,14 @@ void fm_info_init(void) AT(FM_CODE)
     }
 
     fm_mode_var.bTotalChannel = get_total_mem_channel();
-    
+
     if (!fm_mode_var.bTotalChannel)
     {
         fm_mode_var.bTotalChannel = 1;
     }
 
     fm_mode_var.bFreChannel = get_memory(MEM_CHAN);
-    
+
     if (fm_mode_var.bFreChannel > MAX_CHANNL)					//台号为1;总台数为1
     {
         fm_mode_var.bFreChannel = 1;
@@ -456,12 +457,12 @@ void fm_info_init(void) AT(FM_CODE)
     }
 
     fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
-    
+
     if (0xff == fm_mode_var.bFreChannel)
     {
         fm_mode_var.bFreChannel = 1;
     }
-    
+
     set_fre(FM_CUR_FRE);
     fm_module_mute(0);
     scan_mode = FM_SCAN_STOP;
@@ -486,25 +487,30 @@ bool fm_scan(u8 mode) AT(FM_CODE)
 	if (qn8035_online)
         QN8035_setch(4);
 #endif
-    
+
+    fm_module_mute(1);
+    dac_mute(1);
 	if (mode == FM_SCAN_PREV)
 	    res = set_fre(FM_FRE_DEC);
 	else
 	    res = set_fre(FM_FRE_INC);
-    
+
     UI_menu(MENU_FM_DISP_FRE);
-    
+
     if (res)						//找到一个台
     {
-        fm_module_mute(0); 
+        fm_module_mute(0);
+        dac_mute(0);
         set_memory(MEM_FRE, fm_mode_var.wFreq - MIN_FRE);
         save_fm_point(fm_mode_var.wFreq - MIN_FRE);
-        fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);     
-        fm_mode_var.bTotalChannel = get_total_mem_channel(); 
-		UI_menu(MENU_FM_FIND_STATION); 
+        fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
+        fm_mode_var.bTotalChannel = get_total_mem_channel();
+		UI_menu(MENU_FM_FIND_STATION);
 		return true;            		
     }
-	  
+	
+    fm_module_mute(0);
+    dac_mute(0);
     return false;
 }
 

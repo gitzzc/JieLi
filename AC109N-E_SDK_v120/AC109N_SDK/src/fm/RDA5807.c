@@ -15,10 +15,11 @@
 #include "iic.h"
 
 //FM_RDA5807_VAR _xdata FM_rda5807_var;
-_no_init u8 _idata rda5807_dat[12];
-_no_init u8 _xdata read_dat[10];
-_no_init u8 _xdata fm_type;
+_no_init u8  rda5807_dat[12];
+_no_init u8  read_dat[10];
+_no_init u8  fm_type;
 
+#if 0
 /*--------------RDA5807SP Initial Table----------------*/
 const u8 rda5807sp[] AT(RDA5807_TABLE_CODE)= {
 	0xC0,0x01,	
@@ -161,7 +162,7 @@ const u8 rda5807mp[] AT(RDA5807_TABLE_CODE)=
 //    0xC4,0x01, //02H:
 //#else
 #ifdef SHARE_RTC_OSC_TO_FM
-  0xC4,0x01, //02H:
+  0xC4,0x01 , //02H:
 #else
     0xC0,0x05,
 #endif
@@ -171,7 +172,7 @@ const u8 rda5807mp[] AT(RDA5807_TABLE_CODE)=
     RDA5807_RSSI | 0xC0, 0xBF, //05h
     0x60,0x00,
     0x42,0x1A,//11
-    
+
     0x00,0x00,
     0x00,0x00,
     0x00,0x00,  //0x0ah
@@ -327,7 +328,7 @@ __root void init_RDA5807(void) AT(RDA5807_CODE)
 	rda5807_write(12);
 	delay_n10ms(5);
 
-#if 0 
+#if 0
 	/*
 #if 1
 	rda5807_dat[7] &=~0x0F;
@@ -478,6 +479,176 @@ __root bool RDA5807_Read_ID(void) AT(RDA5807_CODE)
 __root void RDA5807_setch(u8 db) AT(RDA5807_CODE)
 {
  db = db;
+}
+#endif
+
+
+#define rda5807_stc() (read_dat[0] & (1 << 6))       ///<锁频结束
+#define rda5807_true() (read_dat[2] & (1 << 0))      ///<是否有台
+#define rda5807_rssi() ((read_dat[2] >> 1))          ///<接收信号强度
+#define rda5807_st()   (read_dat[0] & (1 << 2))
+/*----------------------------------------------------------------------------*/
+/**@brief    RDA5807写寄存器函数
+   @param    num 需要的数目
+   @return   无
+   @note     void rda5807_write(u8 num)
+*/
+/*----------------------------------------------------------------------------*/
+void rda5807_write(u8 num)
+{
+    iic_write(RDA5807_WR_ADDRESS,0xff,(u8 *)rda5807_dat,num);
+}
+/*----------------------------------------------------------------------------*/
+/**@brief    RDA5807读寄存器函数
+   @param    需要读取的数目
+   @return   无
+   @note     void rda5807_read(u8 num)
+*/
+/*----------------------------------------------------------------------------*/
+void rda5807_read(u8 num)
+{
+    iic_readn(RDA5807_RD_ADDRESS,0xff,(u8 *)read_dat,num);
+}
+/*----------------------------------------------------------------------------*/
+/**@brief    RDA5807 初始化
+   @param    无
+   @return   无
+   @note     void init_rda5807(void)
+*/
+/*----------------------------------------------------------------------------*/
+
+void init_RDA5807(void)
+{
+  unsigned int i,j;
+
+    read_dat[0] = 0;
+    read_dat[1] = 0;
+    read_dat[2] = 0;
+    read_dat[3] = 0;
+    rda5807_dat[0] = 0;
+    rda5807_dat[1] = 2;
+    rda5807_dat[2] = 0;
+    rda5807_dat[3] = 0x10;
+    rda5807_dat[4] = 0x04;
+    rda5807_dat[5] = 0x0;
+    rda5807_dat[6] = 0x80 | 0x6;
+    rda5807_dat[7] = 0xbf;
+    rda5807_dat[8] = 0x0;
+    rda5807_dat[9] = 0x0;
+    rda5807_dat[10] = 0x7e;
+    rda5807_dat[11] = 0xc6;
+    rda5807_write(2);
+//    delay_10ms(40);
+    for(i=0;i<1000;i++)
+      for(j=0;j<100;j++);
+    rda5807_dat[0] = 0xc0;
+    rda5807_dat[1] = 0x01;
+    rda5807_dat[7] &=~0x0F;
+    rda5807_dat[7] |= 0x07;
+    rda5807_dat[0] = 0xC0;
+    rda5807_write(12);
+//    delay_10ms(10);
+    for(i=0;i<1000;i++)
+      for(j=0;j<100;j++);
+}
+/*----------------------------------------------------------------------------*/
+/**@brief    设置一个频点RDA5807
+   @param    fre 频点  875~1080
+   @return   1：当前频点有台，0：当前频点无台
+   @note     bool set_fre_rda5807(u16 fre, u8 mode)
+*/
+/*----------------------------------------------------------------------------*/
+bool set_fre_RDA5807(u16 fre)
+{
+    u16 pll;
+    u16 i,j;
+
+    pll = (fre - 870);
+    rda5807_dat[2] = pll >> 2;
+    rda5807_dat[3] = ((pll & 0x0003)<<6)|0x10;
+
+    rda5807_write(4);
+//    delay_10ms(10);
+    for(i=0;i<1000;i++)
+      for(j=0;j<100;j++);
+    i = 0;
+    do
+    {
+        rda5807_read(4);
+        i++;
+//        delay_10ms(1);
+    for(i=0;i<1000;i++)
+      for(j=0;j<100;j++);
+        if (rda5807_true())
+        {
+            return 1;
+        }
+    }
+    while (i<5);
+
+    return 0;
+}
+
+/*----------------------------------------------------------------------------*/
+/**@brief    关闭RDA5807的电源
+   @param    无
+   @return   无
+   @note     void rda5807_poweroff(void)
+*/
+/*----------------------------------------------------------------------------*/
+void RDA5807_PowerDown(void)
+{
+  u16 i,j;
+    rda5807_dat[1] &= ~(1<<0);
+    rda5807_write(2);
+//    delay_10ms(5);
+    for(i=0;i<1000;i++)
+      for(j=0;j<100;j++);
+}
+/*----------------------------------------------------------------------------*/
+/**@brief    获取RDA5807 芯片ID号
+   @param    无
+   @return   获取成功标志位
+   @note     bool rda5807_read_id(void)
+*/
+/*----------------------------------------------------------------------------*/
+bool RDA5807_Read_ID(void)
+{
+    iic_readn(RDA5807_RD_ADDRESS,0xff,(u8 *)rda5807_dat,10);
+
+    //if ((0x58 == rda5807_dat[4]) || (0x58 == rda5807_dat[6]) || (0x58 == rda5807_dat[8]))
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/*----------------------------------------------------------------------------*/
+/**@brief    RDA5807 Mute函数
+   @param    flag：Mute使能位
+   @return   无
+   @note     void rda5807_mute(u8 flag)
+*/
+/*----------------------------------------------------------------------------*/
+void RDA5807_mute(u8 flag)
+{
+    if (flag)
+        rda5807_dat[0] &= ~BIT(6); 	//mute
+    else
+        rda5807_dat[0] |= BIT(6);
+
+    rda5807_write(2);
+}
+/*----------------------------------------------------------------------------*/
+/**@brief    RDA5807 Mute函数
+   @param    flag：Mute使能位
+   @return   无
+   @note     void rda5807_setch(u8 db)
+*/
+/*----------------------------------------------------------------------------*/
+void rda5807_setch(u8 db)
+{
+    db=db;
 }
 #endif
 
