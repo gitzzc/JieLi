@@ -165,41 +165,59 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
   return speed;
 }
 
+#define READ_TURN_LEFT()		(P32)
+#define READ_TURN_RIGHT()		(P31)
+
 void LRFlash_Task(void)
 {
-	static unsigned int left_count=0,right_count=0;
+	static unsigned char left_on=0	,left_off=0;
+	static unsigned char right_on=0	,right_off=0;
+	static unsigned char left_count=0,right_count=0;
   
-	if ( P32 ){
-		if ( left_count < 20 ){
-			left_count += 2;
-		} else if ( left_count < 100 ){
-			left_count += 2;
-			bike.TurnLeft = 1;
-		} else {
-			left_count = 100;
+	if ( READ_TURN_LEFT() ){	//ON
+        left_off = 0;
+        if ( left_on ++ > 20 ){		//200ms 滤波
+          	left_on = 21;
+           	if ( left_count < 0xFF-50 )
+	            left_count++;
+			bike.bLeftFlash	= 1;
+			bike.bTurnLeft 	= 1; 
+        }
+	} else {					//OFF
+        left_on = 0;
+        if ( left_off ++ == 20 ){
+        	left_count += 50;	//500ms
+			bike.bLeftFlash	= 0;
+        } else if ( left_off > 20 ){
+	        left_off = 21;
+			if ( left_count == 0 )
+				bike.bTurnLeft = 0; 
+			else
+				left_count --;
 		}
-	} else {
-		if ( left_count )
-			left_count --;
-		if ( left_count == 0 )
-			bike.TurnLeft = 0; 
 	}
 	
-	if ( P31 ){
-		if ( right_count < 20 ){
-			right_count += 2;
-		} else if ( right_count < 100 ){
-			right_count += 2;
-			bike.TurnRight = 1;
-		} else {
-			right_count = 100;
+	if ( READ_TURN_RIGHT() ){	//ON
+        right_off = 0;
+        if ( right_on ++ > 20 ){
+            right_on = 21;
+            right_count++;
+			bike.bRightFlash	= 1;
+			bike.bTurnRight 	= 1; 
+        }
+	} else {					//OFF
+        right_on = 0;
+        if ( right_off ++ == 20 ){
+        	right_count += 50;	//500ms
+			bike.bRightFlash	= 0;
+        } else if ( right_off > 20 ){
+	        right_off = 21;
+			if ( right_count == 0 )
+				bike.bTurnRight = 0; 
+			else
+				right_count --;
 		}
-	} else {
-		if ( right_count )
-			right_count --;
-		if ( right_count == 0 )
-			bike.TurnRight = 0; 
-	}	 
+	}
 }
 
 void Light_Task(void) AT(BIKE_CODE)
@@ -213,17 +231,17 @@ void Light_Task(void) AT(BIKE_CODE)
 
     if( P30 ) {
       bike.NearLight = 1; 
-      P2PU  |= BIT(0);
+      P2PU  |= BIT(0);  //背光调节
       P2DIR &=~BIT(0);
       P20    = 0;
     } else {
       bike.NearLight = 0;
-      P2PU  |= BIT(0);
+      P2PU  |= BIT(0);  //背光调节
       P2DIR &=~BIT(0);
       P20    = 1;
     }
-	//if( P31 ) bike.TurnRight = 1; else bike.TurnRight = 0;
-	//if( P32 ) bike.TurnLeft  = 1; else bike.TurnLeft  = 0;
+	//if( P31 ) bike.bTurnRight = 1; else bike.bTurnRight = 0;
+	//if( P32 ) bike.bTurnLeft  = 1; else bike.bTurnLeft  = 0;
 	bike.PHA_Speed = (unsigned long)GetSpeed();
 	bike.Speed = (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale + bike.Speed_dec;
 }
@@ -253,7 +271,7 @@ void WriteConfig(void) AT(BIKE_CODE)
 		config.Sum += cbuf[i];
 		
 	for(i=0;i<sizeof(BIKE_CONFIG);i++)
-		set_memory(BIKE_EEPROM_START+i,0);
+		set_memory(BIKE_EEPROM_START+i,cbuf[i]);
 }
 
 void InitConfig(void) AT(BIKE_CODE)
@@ -289,16 +307,17 @@ void InitConfig(void) AT(BIKE_CODE)
 	bike.Speed_dec = 0;
 	bike.bPlayFlash = 0;
 	
-    P3PU    &=~(1<<3);
-    P3PD    &=~(1<<3);
-    P3DIE   |= (1<<3);
-    P3DIR   |= (1<<3);
+    P3PU    &=~(BIT(3)|BIT(4));
+    P3PD    &=~(BIT(3)|BIT(4));
+    P3DIE   |= (BIT(3)|BIT(4));
+    P3DIR   |= (BIT(3)|BIT(4));
     
 	if ( P33 == 0 ){
         config.SysVoltage = 48;
     } else {
         config.SysVoltage = 60;
     }
+    bike.bLRFlashType = P34;
 }
 
 unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
@@ -336,7 +355,7 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 
 	switch( TaskFlag ){
 	case TASK_INIT:
-		if ( Get_SysTick() < 3000 && bike.TurnRight == 1 ){
+		if ( Get_SysTick() < 3000 && bike.bTurnRight == 1 ){
 			TaskFlag = TASK_STEP1;
 			count = 0;
 		}
@@ -354,7 +373,7 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 		lastLight = bike.NearLight;
 		break;
 	case TASK_STEP2:
-		if ( bike.TurnRight == 0 && bike.TurnLeft == 1 ) {
+		if ( bike.bTurnRight == 0 && bike.bTurnLeft == 1 ) {
 			TaskFlag = TASK_EXIT;
 			bike.MileFlash 	= 0;
 			bike.FMile 		= 0;
@@ -423,87 +442,87 @@ void TimeTask(void) AT(BIKE_CODE)
 	
 	switch ( time_task ){
 	case 0:
-		if ( Get_SysTick() < 5000 && bike.NearLight == 0 && bike.TurnLeft == 1 ){
+		if ( Get_SysTick() < 5000 && bike.NearLight == 0 && bike.bTurnLeft == 1 ){
 			pre_tick = Get_SysTick();
 			time_task++;
 		}
 		break;
 	case 1:
-		if ( bike.TurnLeft == 0 ){
+		if ( bike.bTurnLeft == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 2:
-		if ( bike.TurnRight == 1 ){
+		if ( bike.bTurnRight == 1 ){
 			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000  || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 3:
-		if ( bike.TurnRight == 0 ){
+		if ( bike.bTurnRight == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 4:
-		if ( bike.TurnLeft == 1 ){
+		if ( bike.bTurnLeft == 1 ){
 			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000  || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 5:
-		if ( bike.TurnLeft == 0 ){
+		if ( bike.bTurnLeft == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 6:
-		if ( bike.TurnRight == 1 ){
+		if ( bike.bTurnRight == 1 ){
 			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000  || bike.NearLight ) time_task = 0xFF;
 		}
 	case 7:
-		if ( bike.TurnRight == 0 ){
+		if ( bike.bTurnRight == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 8:
-		if ( bike.TurnLeft == 1 ){
+		if ( bike.bTurnLeft == 1 ){
 			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000  || bike.NearLight ) time_task = 0xFF;
 		}
 	case 9:
-		if ( bike.TurnLeft == 0 ){
+		if ( bike.bTurnLeft == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 10:
-		if ( bike.TurnRight == 1 ){
+		if ( bike.bTurnRight == 1 ){
 			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000  || bike.NearLight ) time_task = 0xFF;
 		}
 	case 11:
-		if ( bike.TurnRight == 0 ){
+		if ( bike.bTurnRight == 0 ){
 			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 10000 || bike.NearLight ) time_task = 0xFF;
 		}
 		break;
 	case 12:
-		if ( bike.TurnLeft == 1 || bike.NearLight ){
+		if ( bike.bTurnLeft == 1 || bike.NearLight ){
 			 time_task = 0xFF;
 		} else {
 			if ( Get_ElapseTick(pre_tick) > 1000 ) {
@@ -522,8 +541,8 @@ void TimeTask(void) AT(BIKE_CODE)
 	}
 
 	if ( bike.time_set ){
-		if ( bike.TurnLeft ) { left_on = 1; }
-		if ( bike.TurnLeft == 0 ) {
+		if ( bike.bTurnLeft ) { left_on = 1; }
+		if ( bike.bTurnLeft == 0 ) {
 			if ( left_on == 1 ){
 				bike.time_pos ++;
 				bike.time_pos %= 4;

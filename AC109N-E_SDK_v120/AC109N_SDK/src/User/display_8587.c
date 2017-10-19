@@ -51,23 +51,16 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	
 	for(i=0;i<18;i++)	BL_Data[i] = 0x00;
 	
-	if( bike->TurnLeft	){
-		TL_Flash++;
-		TL_Flash %= 10;
-		if ( TL_Flash < 5 ) LCD_LEFT();
-	} else
-		TL_Flash = 0;
-	
-	if( bike->TurnRight	){
-		TR_Flash++;
-		TR_Flash %= 10;
-		if ( TR_Flash < 5 ) LCD_RIGHT();
-	} else
-		TR_Flash = 0;
-	
-	if( bike->NearLight 	) LCD_LIGHT();
+    if ( bike->bLRFlashType ){
+		if( bike->bLeftFlash 	)	LCD_LEFT();
+		if( bike->bRightFlash	)	LCD_RIGHT();
+    } else {
+     	if (  bike->bLeftFlash 	&& flashflag >= 5 )	LCD_LEFT();
+     	if (  bike->bRightFlash && flashflag >= 5 )	LCD_RIGHT();
+    }
+	if( bike->NearLight 	) 		LCD_LIGHT();
 
-	/***************************Battery Area Display**********************************/
+    /***************************Battery Area Display**********************************/
 	BL_Data[15] |= 0x80;	//T0
     BL_Data[ 8] |= 0x10;	//T10
 	switch ( bike->BatStatus ){
@@ -269,7 +262,7 @@ void LCD_show_fm_main(void) AT(BIKE_CODE)
  	bike.uiPlayMedia = MEDIA_FM;
     bike.uiFM_Freq = fm_mode_var.wFreq;
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
-    deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
+    //deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
 }
 
 void LCD_show_fm_station(void) AT(BIKE_CODE)

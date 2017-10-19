@@ -57,7 +57,7 @@ void fm_play(void) AT(FM_CODE)
 //            break;
 
         case MSG_FM_SCAN_ALL_INIT:
-            deg("MSG_FM_SCAN_ALL_INIT\n");
+            //deg("MSG_FM_SCAN_ALL_INIT\n");
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
@@ -226,12 +226,12 @@ void fm_play(void) AT(FM_CODE)
         case MSG_MUTE_UNMUTE:
           if ( mute ){
             mute = 0;
-            deg("MSG_UNMUTE\n");
+            //deg("MSG_UNMUTE\n");
             UI_menu(MENU_UNMUTE);
             dac_mute(mute);
           } else {
             mute = 1;
-            deg("MSG_MUTE\n");
+            //deg("MSG_MUTE\n");
             UI_menu(MENU_MUTE);
             dac_mute(mute);
           }
@@ -269,13 +269,12 @@ void fm_mode(void) AT(FM_CODE)
         P2DIE |= BIT(5);
         P2DIR &=~BIT(5);
         P25    = 0;
-        deg_puts("init_fm_rev ok\n");
+        //deg_puts("init_fm_rev ok\n");
         P2HD &= ~0x7;
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
         system_clk_div(CLK_2M);
-        deg_puts("fm_play\n");
         fm_play();
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();

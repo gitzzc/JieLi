@@ -541,7 +541,7 @@ void init_RDA5807(void)
 //    delay_10ms(40);
     for(i=0;i<1000;i++)
       for(j=0;j<100;j++);
-    rda5807_dat[0] = 0xc0;
+    rda5807_dat[0] = 0xc4;
     rda5807_dat[1] = 0x01;
     rda5807_dat[7] &=~0x0F;
     rda5807_dat[7] |= 0x07;

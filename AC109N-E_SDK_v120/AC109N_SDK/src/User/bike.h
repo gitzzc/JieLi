@@ -74,9 +74,12 @@ typedef struct {
 	unsigned char bShowVol	:1;	
     unsigned char bPlayFlash:1;
     unsigned char bMute		:1;
-	
-	unsigned char TurnLeft;
-	unsigned char TurnRight;
+    unsigned char bLRFlashType	:1;
+    unsigned char bLeftFlash	:1;	
+    unsigned char bRightFlash	:1;	
+    unsigned char bTurnLeft		:1;
+    unsigned char bTurnRight	:1;
+    
 	unsigned char SpeedMode;
 			 int  Temperature;
 	unsigned int  Voltage;

@@ -239,10 +239,6 @@ static void sys_init(void) AT(CSTART)
 {
     /*IIC I/O init*/
     iic_init();
-/*    P0DIR |= (1<<2)|(1<<0);
-    P0PU |= (1<<2)|(1<<0);
-    P00 = 1;
-    P02 = 1;*/
 
     /*UI init*/
     ui_init();

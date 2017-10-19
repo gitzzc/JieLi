@@ -71,7 +71,7 @@ enum
 //#define CLK_USE_12M_NO_HTC
 //#define CLK_USE_12M_WITH_HTC
 
-//#define SHARE_RTC_OSC_TO_FM
+#define SHARE_RTC_OSC_TO_FM
 //---------------------------------------------------------------------------------------------------------------/
 #define WDT_EN              //是否允许看门狗复位
 //---------------------------------------------------------------------------------------------------------------/
@@ -217,7 +217,7 @@ enum
 #define P04_TOGGLE       P0DIR &= ~BIT(4); P04 = ~P04
 #define P05_TOGGLE       P0DIR &= ~BIT(5); P05 = ~P05
 
-#define IIC_DAT_USE_P02
+//#define IIC_DAT_USE_P02
 
 #endif
 

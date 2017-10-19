@@ -499,6 +499,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
             deg("MSG_STOP\n");
             dac_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
+            save_music_break_point(device_active);
             work_mode = OFF_MODE;
             UI_menu(MENU_STOP);
           return;
