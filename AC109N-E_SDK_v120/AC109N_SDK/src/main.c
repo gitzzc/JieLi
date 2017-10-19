@@ -276,7 +276,11 @@ static void sys_init(void) AT(CSTART)
 	eeprom_verify();
 	/*DAC ≥ı ºªØ*/
     DAC_init();
+
     work_mode =(ENUM_WORK_MODE)get_memory(MEM_SYSMODE);
+	main_vol_L = get_memory(MEM_VOL_L);
+	main_vol_R = get_memory(MEM_VOL_R);
+	set_main_vol(main_vol_L, main_vol_R);
     playfile.given_device = NO_DEVICE;
 }
 

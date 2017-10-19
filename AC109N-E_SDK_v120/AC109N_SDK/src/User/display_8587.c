@@ -111,7 +111,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		BL_Data[16] |= ( SegDataTime[ bike->uiValue%10	  ] );
 	} else {
 		if ( bike->uiPlayMedia == MEDIA_USB ){
-			if ( bike->uiShowFileNO ){
+            if ( bike->uiShowFileNO ){
 				BL_Data[12] |= SegDataTime[(bike->uiFileNO/1000		)%10];
 				BL_Data[11] |= SegDataTime[(bike->uiFileNO/100		)%10];
 				BL_Data[17] |= SegDataTime[(bike->uiFileNO/10		)%10];
@@ -128,7 +128,12 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 				BL_Data[11] = 0xEE;	//'A'
 				BL_Data[17] = 0x7A;	//'U'
 				BL_Data[16] = 0xBC;	//'S'
-			}
+			} else if ( bike->bShowWait ){
+				BL_Data[12] = 0x00;	//' '
+				BL_Data[11] = 0x7A;	//'U'
+				BL_Data[17] = 0xBC;	//'S'
+				BL_Data[16] = 0x3E;	//'b'
+            }
 		} else if ( bike->uiPlayMedia == MEDIA_FM ){
 			if ( bike->uiShowFileNO ){
 				BL_Data[12] |= 0x9A;  //'C'
@@ -154,7 +159,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 			BL_Data[12] &= 0x01;
 			BL_Data[11] &= 0x01;
 			BL_Data[17] &= 0x00;
-			BL_Data[16] &= 0x01;
+			BL_Data[16] &= 0x00;
 		}
 	}
 
@@ -235,6 +240,12 @@ void LCD_show_dev(void) AT(BIKE_CODE)
 		bike.uiPlayMedia = MEDIA_SD;
 }*/
 
+void LCD_show_music_wait(void) AT(BIKE_CODE)
+{
+	bike.uiPlayMedia = MEDIA_USB;
+ 	bike.bShowWait = 1;
+}
+
 void LCD_show_music_main(void) AT(BIKE_CODE)
 {
     u16 play_time;
@@ -242,6 +253,7 @@ void LCD_show_music_main(void) AT(BIKE_CODE)
     /*Music Play time info*/
     bike.uiPlayTime = get_music_play_time();
 	bike.bShowVol = 0;
+ 	bike.bShowWait = 0;
     if( bike.uiShowFileNO ) bike.uiShowFileNO--;
 	bike.uiPlayMedia = MEDIA_USB;
 

@@ -96,7 +96,7 @@ static void music_info_init(void) AT(MUSIC_PLAY)
 
     /*--------Music UI*/
     SET_UI_MAIN(MENU_MUSIC_MAIN);
-    //UI_menu(MENU_WAIT);
+    UI_menu(MENU_POWER_UP);
     key_table_sel(0);
 }
 

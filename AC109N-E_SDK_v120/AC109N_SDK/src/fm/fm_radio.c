@@ -39,6 +39,11 @@ void fm_play(void) AT(FM_CODE)
     u8 scan_counter;
     static bool mute=0;
 
+    fm_mode_var.wFreq = 1061;				//根据台号找频点
+    set_fre(FM_CUR_FRE);
+    fm_module_mute(0);
+    UI_menu(MENU_FM_MAIN);
+
     while (1)
     {
         u8 key = app_get_msg();
@@ -259,7 +264,7 @@ void fm_play(void) AT(FM_CODE)
 /*----------------------------------------------------------------------------*/
 void fm_mode(void) AT(FM_CODE)
 {
-#ifndef SHARE_RTC_OSC_TO_FM
+#ifdef SHARE_RTC_OSC_TO_FM
     P05_config(P05_OSC_CLK);
 #endif
 
@@ -287,7 +292,7 @@ void fm_mode(void) AT(FM_CODE)
         work_mode++;
     }
 
-#ifndef SHARE_RTC_OSC_TO_FM
+#ifdef SHARE_RTC_OSC_TO_FM
     P05_config(P05_NORMAL_IO);
 #endif
 }

@@ -13,6 +13,8 @@
 #include "device.h"
 #include "IRTC.h"
 
+#define IIC_DAT_USE_P02
+
 bool iic_busy;
 
 __code const u16 iic_io_tab[8] AT(TABLE_CODE)=
@@ -38,7 +40,7 @@ _near_func void iic_data_out(void) AT(COMMON_CODE)
 {
 #ifdef IIC_DAT_USE_P02
     P0DIR &= ~(1<<2);
-#else  
+#else
     P0DIR &= ~(1<<1);
 #endif
 }
@@ -57,7 +59,7 @@ _near_func void iic_data_in(void) AT(COMMON_CODE)
 #ifdef IIC_DAT_USE_P02
     P0DIR |= (1<<2);
     P0PU |= (1<<2);
-#else  
+#else
     P0DIR |= (1<<1);
     P0PU |= (1<<1);
 #endif
@@ -76,7 +78,7 @@ _near_func bool iic_data_r(void) AT(COMMON_CODE)
 {
 #ifdef IIC_DAT_USE_P02
     return P02;
-#else  
+#else
     return P01;
 #endif
 }
@@ -93,7 +95,7 @@ _near_func void iic_data(bool flag) AT(COMMON_CODE)
 {
 #ifdef IIC_DAT_USE_P02
     P02 = flag;
-#else  
+#else
     P01 = flag;
 #endif
 }

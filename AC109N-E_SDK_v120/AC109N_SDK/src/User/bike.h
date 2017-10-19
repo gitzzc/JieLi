@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file    
+  * @file
   * @author  ahzzc@sina.com
   * @version V2.xx
-  * @date    
-  * @brief   
+  * @date
+  * @brief
   ******************************************************************************
   * @Changlog
   * V2.00
@@ -28,7 +28,7 @@
 //#define	LCD_SEG_TEST
 
 #define BIKE_EEPROM_START   0x80
-    
+
 #ifndef PCB_VER
 	#define PCB_VER	0100
 #endif
@@ -72,6 +72,7 @@ typedef struct {
 	unsigned char MP3		:1;	
 	unsigned char FM		:1;	
 	unsigned char bShowVol	:1;	
+    unsigned char bShowWait	:1;
     unsigned char bPlayFlash:1;
     unsigned char bMute		:1;
     unsigned char bLRFlashType	:1;
@@ -79,7 +80,7 @@ typedef struct {
     unsigned char bRightFlash	:1;	
     unsigned char bTurnLeft		:1;
     unsigned char bTurnRight	:1;
-    
+
 	unsigned char SpeedMode;
 			 int  Temperature;
 	unsigned int  Voltage;

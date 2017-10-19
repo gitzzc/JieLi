@@ -237,7 +237,10 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
     /*-----System Power On UI*/
     case MENU_AUX_MAIN:
         //LCD_SEG5X9_var.state[0] |= AUX_ICON; //AUXÍ¼±ê
+      break;
     case MENU_POWER_UP:
+      LCD_show_music_wait();
+      break;
     case MENU_WAIT:
 #ifdef USB_DEVICE_EN
     case MENU_PC_MAIN:

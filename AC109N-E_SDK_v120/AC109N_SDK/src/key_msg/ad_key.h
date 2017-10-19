@@ -69,7 +69,7 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 								/*02*/    NO_MSG,\
 								/*03*/    MSG_MUSIC_FR,\
 								/*04*/    MSG_MUSIC_FF,\
-								/*05*/    MSG_MUSIC_PP,\
+								/*05*/    NO_MSG,\
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
 								/*08*/    NO_MSG,\
@@ -82,7 +82,7 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 								/*02*/    NO_MSG,\
 								/*03*/    MSG_MUSIC_FR,\
 								/*04*/    MSG_MUSIC_FF,\
-								/*05*/    MSG_MUSIC_PP,\
+								/*05*/    NO_MSG,\
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
 								/*08*/    NO_MSG,\

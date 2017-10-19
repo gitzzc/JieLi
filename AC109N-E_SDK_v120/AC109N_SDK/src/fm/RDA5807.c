@@ -519,7 +519,6 @@ void rda5807_read(u8 num)
 
 void init_RDA5807(void)
 {
-  unsigned int i,j;
 
     read_dat[0] = 0;
     read_dat[1] = 0;
@@ -538,18 +537,14 @@ void init_RDA5807(void)
     rda5807_dat[10] = 0x7e;
     rda5807_dat[11] = 0xc6;
     rda5807_write(2);
-//    delay_10ms(40);
-    for(i=0;i<1000;i++)
-      for(j=0;j<100;j++);
+    delay_n10ms(40);
     rda5807_dat[0] = 0xc4;
     rda5807_dat[1] = 0x01;
     rda5807_dat[7] &=~0x0F;
     rda5807_dat[7] |= 0x07;
     rda5807_dat[0] = 0xC0;
     rda5807_write(12);
-//    delay_10ms(10);
-    for(i=0;i<1000;i++)
-      for(j=0;j<100;j++);
+    delay_n10ms(10);
 }
 /*----------------------------------------------------------------------------*/
 /**@brief    设置一个频点RDA5807
@@ -561,24 +556,20 @@ void init_RDA5807(void)
 bool set_fre_RDA5807(u16 fre)
 {
     u16 pll;
-    u16 i,j;
+    u16 i;
 
     pll = (fre - 870);
     rda5807_dat[2] = pll >> 2;
     rda5807_dat[3] = ((pll & 0x0003)<<6)|0x10;
 
     rda5807_write(4);
-//    delay_10ms(10);
-    for(i=0;i<1000;i++)
-      for(j=0;j<100;j++);
+    delay_n10ms(10);
     i = 0;
     do
     {
         rda5807_read(4);
         i++;
-//        delay_10ms(1);
-    for(i=0;i<1000;i++)
-      for(j=0;j<100;j++);
+        delay_n10ms(1);
         if (rda5807_true())
         {
             return 1;
@@ -598,12 +589,9 @@ bool set_fre_RDA5807(u16 fre)
 /*----------------------------------------------------------------------------*/
 void RDA5807_PowerDown(void)
 {
-  u16 i,j;
     rda5807_dat[1] &= ~(1<<0);
     rda5807_write(2);
-//    delay_10ms(5);
-    for(i=0;i<1000;i++)
-      for(j=0;j<100;j++);
+    delay_n10ms(5);
 }
 /*----------------------------------------------------------------------------*/
 /**@brief    获取RDA5807 芯片ID号
@@ -614,9 +602,13 @@ void RDA5807_PowerDown(void)
 /*----------------------------------------------------------------------------*/
 bool RDA5807_Read_ID(void)
 {
-    iic_readn(RDA5807_RD_ADDRESS,0xff,(u8 *)rda5807_dat,10);
+	rda5807_dat[0] = 0x00;
+	rda5807_dat[1] = 0x02;
+	rda5807_write(2);
+	delay_n10ms(1);
+	rda5807_read(10);
 
-    //if ((0x58 == rda5807_dat[4]) || (0x58 == rda5807_dat[6]) || (0x58 == rda5807_dat[8]))
+    if ((0x58 == read_dat[4]) || (0x58 == read_dat[6]) || (0x58 == read_dat[8]))
     {
         return TRUE;
     }
