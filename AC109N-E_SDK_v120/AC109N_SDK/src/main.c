@@ -271,7 +271,7 @@ static void sys_init(void) AT(CSTART)
 
     /*PLL初始化，会关总中断*/
 	pll_init();
-    uart_setup();
+    //uart_setup();
     /*EEPROM verify*/
 	eeprom_verify();
 	/*DAC 初始化*/
@@ -314,7 +314,7 @@ void main(void) AT(CSTART)
         switch (work_mode)
         {
         case MUSIC_MODE:
-            deg_puts("-Music Mode\n");
+            //deg_puts("-Music Mode\n");
             music_app();
             break;
 
@@ -327,7 +327,7 @@ void main(void) AT(CSTART)
 
 #ifdef FM_ENABLE
         case FM_RADIO_MODE:
-            deg_puts("-FM Mode\n");
+            //deg_puts("-FM Mode\n");
             fm_mode();
             break;
 #endif
@@ -339,12 +339,12 @@ void main(void) AT(CSTART)
 */
 #ifdef RTC_EN
         case RTC_MODE:
-            deg_puts("-RTC Mode\n");
+            //deg_puts("-RTC Mode\n");
             RTC_mode();
             break;
 #endif
         case OFF_MODE:
-          deg_puts("OFF_MODE\n");
+          //deg_puts("OFF_MODE\n");
           OFF_mode();
           break;
         default:

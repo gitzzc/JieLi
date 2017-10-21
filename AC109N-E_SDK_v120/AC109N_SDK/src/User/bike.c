@@ -37,13 +37,13 @@ unsigned int Get_ElapseTick(unsigned int pre_tick) AT(BIKE_CODE)
 	unsigned int tick = Get_SysTick();
 
 	if ( tick >= pre_tick )	
-		return (tick - pre_tick); 
-	else 
+		return (tick - pre_tick);
+	else
 		return (0xFFFF - pre_tick + tick);
 }
 
 #if 0
-const long NTC_B3450[29][2] = 
+const long NTC_B3450[29][2] =
 {
 	251783,	-400,	184546,	-350,	137003,	-300,	102936,	-250,	78219,	-200,
 	60072,	-150,	46601,	-100,	36495,	-50,	28837,	0,		22980,	50,
@@ -83,7 +83,7 @@ int GetTemp(void) AT(BIKE_CODE)
 	unsigned char i;
 
 	temp = AD_var.wADValue[AD_BIKE_TEMP]>>6;
-  
+
 	temp_buf[index++] = temp;
 	if ( index >= ContainOf(temp_buf) )
 		index = 0;
@@ -145,17 +145,17 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	if ( config.SysVoltage	== 48 ){	
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
-      } else if ( vol < 240 ){  
+      } else if ( vol < 240 ){
 		speed = (unsigned long)vol*18078UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*42 KM/H
-      } else/* if ( vol < 270 )*/{  
+      } else/* if ( vol < 270 )*/{
 		speed = (unsigned long)vol*18364UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/27V*48 KM/H
       }
 	} else if ( config.SysVoltage	== 60 ) {
       if ( vol < 260 ){
 		speed = (unsigned long)vol*15098UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/26V*38 KM/H
-      } else if ( vol < 300 ){  
+      } else if ( vol < 300 ){
 		speed = (unsigned long)vol*15151UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*44 KM/H
-      } else/* if ( vol < 335 )*/{  
+      } else/* if ( vol < 335 )*/{
 		speed = (unsigned long)vol*15110UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/33.5V*49 KM/H
       }
 	}
@@ -173,7 +173,7 @@ void LRFlash_Task(void)
 	static unsigned char left_on=0	,left_off=0;
 	static unsigned char right_on=0	,right_off=0;
 	static unsigned char left_count=0,right_count=0;
-  
+
 	if ( READ_TURN_LEFT() ){	//ON
         left_off = 0;
         if ( left_on ++ > 20 ){		//200ms ÂË²¨
@@ -181,7 +181,7 @@ void LRFlash_Task(void)
            	if ( left_count < 0xFF-50 )
 	            left_count++;
 			bike.bLeftFlash	= 1;
-			bike.bTurnLeft 	= 1; 
+			bike.bTurnLeft 	= 1;
         }
 	} else {					//OFF
         left_on = 0;
@@ -191,7 +191,7 @@ void LRFlash_Task(void)
         } else if ( left_off > 20 ){
 	        left_off = 21;
 			if ( left_count == 0 )
-				bike.bTurnLeft = 0; 
+				bike.bTurnLeft = 0;
 			else
 				left_count --;
 		}
@@ -203,7 +203,7 @@ void LRFlash_Task(void)
             right_on = 21;
             right_count++;
 			bike.bRightFlash	= 1;
-			bike.bTurnRight 	= 1; 
+			bike.bTurnRight 	= 1;
         }
 	} else {					//OFF
         right_on = 0;
@@ -213,7 +213,7 @@ void LRFlash_Task(void)
         } else if ( right_off > 20 ){
 	        right_off = 21;
 			if ( right_count == 0 )
-				bike.bTurnRight = 0; 
+				bike.bTurnRight = 0;
 			else
 				right_count --;
 		}
@@ -230,7 +230,7 @@ void Light_Task(void) AT(BIKE_CODE)
     P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
 
     if( P30 ) {
-      bike.NearLight = 1; 
+      bike.NearLight = 1;
       P2PU  |= BIT(0);  //±³¹âµ÷½Ú
       P2DIR &=~BIT(0);
       P20    = 0;
@@ -249,8 +249,8 @@ void Light_Task(void) AT(BIKE_CODE)
 void HotReset(void) AT(BIKE_CODE)
 {
 	if (config.bike[0] == 'b' &&
-		config.bike[1] == 'i' && 
-		config.bike[2] == 'k' && 
+		config.bike[1] == 'i' &&
+		config.bike[2] == 'k' &&
 		config.bike[3] == 'e' ){
 		bike.HotReset = 1;
 	} else {
@@ -285,10 +285,10 @@ void InitConfig(void) AT(BIKE_CODE)
 	for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
 		sum += cbuf[i];
 		
-	if (config.bike[0] != 'b' || 
-		config.bike[1] != 'i' || 
-		config.bike[2] != 'k' || 
-		config.bike[3] != 'e' || 
+	if (config.bike[0] != 'b' ||
+		config.bike[1] != 'i' ||
+		config.bike[2] != 'k' ||
+		config.bike[3] != 'e' ||
 		sum != config.Sum ){
 		config.SysVoltage 	= 60;
 		config.VolScale  	= 1000;
@@ -311,7 +311,7 @@ void InitConfig(void) AT(BIKE_CODE)
     P3PD    &=~(BIT(3)|BIT(4));
     P3DIE   |= (BIT(3)|BIT(4));
     P3DIR   |= (BIT(3)|BIT(4));
-    
+
 	if ( P33 == 0 ){
         config.SysVoltage = 48;
     } else {
@@ -410,7 +410,7 @@ void MileTask(void) AT(BIKE_CODE)
 		}
 	} else if ( time == 50 ){
 		bike.Mile = 0;
-	} else 
+	} else
 #endif	
 	{
 		time = 51;
@@ -424,7 +424,7 @@ void MileTask(void) AT(BIKE_CODE)
 			config.Mile ++;
 			if ( config.Mile > 99999 )	config.Mile = 0;
 			WriteConfig();
-		}  
+		}
 	}
 }
 
@@ -528,14 +528,14 @@ void TimeTask(void) AT(BIKE_CODE)
 			if ( Get_ElapseTick(pre_tick) > 1000 ) {
 				time_task= 0;
 				bike.time_pos = 0;
-				bike.time_set = 1; 
+				bike.time_set = 1;
 				pre_tick = Get_SysTick();
 			}
 		}
 		break;
 	default:
 		bike.time_pos = 0;
-		bike.time_set = 0; 
+		bike.time_set = 0;
 		time_task = 0;
 		break;
 	}
@@ -562,7 +562,7 @@ void TimeTask(void) AT(BIKE_CODE)
 				case 1:
 					if ( bike.Hour % 10 < 9 )
 						bike.Hour ++;
-					else 
+					else
 						bike.Hour -= 9;
 					break;
 				case 2:
@@ -572,7 +572,7 @@ void TimeTask(void) AT(BIKE_CODE)
 				case 3:
 					if ( bike.Minute % 10 < 9 )
 						bike.Minute ++;
-					else 
+					else
 						bike.Minute -= 9;
 					break;
 				default:
@@ -594,7 +594,7 @@ void TimeTask(void) AT(BIKE_CODE)
 	bike.Minute 	= RtcTime.RTC_Minutes;
 }
 
-#endif 
+#endif
 
 #if 0
 void Calibration(void) AT(BIKE_CODE)
@@ -617,7 +617,7 @@ void Calibration(void) AT(BIKE_CODE)
 	if ( i == 32 ){
 		for(i=0;i<0xFF;i++){
 			if ( GetVolStabed(&vol) && (vol > 120) ) break;
-			//IWDG_ReloadCounter();  
+			//IWDG_ReloadCounter();
 		}
 		bike.Voltage		= vol;
 		//bike.Temperature	= GetTemp();
@@ -663,13 +663,10 @@ void bike_task(void) AT(BIKE_CODE)
 	
 	switch(task){
 	case BIKE_INIT:
-		deg_puts("BIKE_INIT\n");
 		HotReset();
 		if ( bike.HotReset == 0 ){
-		    deg_puts("BL55072_Config(1)\n");
 			BL55072_Config(1);
 		} else {
-		    deg_puts("BL55072_Config(0)\n");
 			BL55072_Config(0);
 		}
 
@@ -691,10 +688,8 @@ void bike_task(void) AT(BIKE_CODE)
 
 		if ( bike.HotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
-			deg_puts("BIKE_RESET_WAIT\n");
 		} else {
 			task = BIKE_RUN;
-			deg_puts("BIKE_RUN\n");
 		}
 		break;
 	case BIKE_RESET_WAIT:
@@ -706,8 +701,8 @@ void bike_task(void) AT(BIKE_CODE)
 	case BIKE_RUN:
 		tick = Get_SysTick();
 		
-		if ( (tick >= tick_100ms && (tick - tick_100ms) > 100 ) || \
-			 (tick <  tick_100ms && (0xFFFF - tick_100ms + tick) > 100 ) ) {
+		if ( (tick >= tick_100ms && (tick - tick_100ms) >= 100 ) || \
+			 (tick <  tick_100ms && (0xFFFF - tick_100ms + tick) >= 100 ) ) {
 			tick_100ms = tick;
 			count ++;
 			
@@ -723,16 +718,16 @@ void bike_task(void) AT(BIKE_CODE)
 			bike.BatStatus 	= GetBatStatus(bike.Voltage);
 		
 			Light_Task();
-			MileTask(); 
+			MileTask();
 			
 		#ifdef RESET_MILE_ENABLE	
 			MileResetTask();
 		#endif	
 					
 		#if ( TIME_ENABLE == 1 )	
-			TimeTask();   
+			TimeTask();
 		#endif
-      
+
 		#ifdef LCD_SEG_TEST
 			if ( count >= 100 ) count = 0;
 			bike.Voltage 	= count/10 + count/10*10UL + count/10*100UL + count/10*1000UL;

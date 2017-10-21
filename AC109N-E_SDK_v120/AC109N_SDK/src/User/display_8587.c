@@ -196,11 +196,12 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	BL_Data[ 2] |= SegDataMile [(bike->Mile	     )%10] & 0x0F;
 	if ( bike->MileFlash ){
 		if ( flashflag < 5  ) {
-			BL_Data[ 4] &= 0x01;
-			BL_Data[ 5] &= 0x01;
-			BL_Data[ 0] &= 0x01;
-			BL_Data[ 1] &= 0x01;
-			BL_Data[ 2] &= 0x01;
+			BL_Data[ 4] &= 0xF0;
+			BL_Data[ 5] &= 0x08;
+			BL_Data[ 0] &= 0x08;
+			BL_Data[ 1] &= 0x08;
+			BL_Data[ 2] &= 0x08;
+			BL_Data[ 3] &= 0x0F;
 		}
 	}
 
@@ -210,8 +211,8 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	BL_Data[13] |= (SegDataSpeed[bike->Speed%10]);
 	if ( bike->SpeedFlash ){
 		if ( flashflag < 5  ) {
-			BL_Data[14] &= 0x01;
-			BL_Data[13] &= 0X01;
+			BL_Data[14] &= 0x08;
+			BL_Data[13] &= 0x08;
 		}
 	}
 

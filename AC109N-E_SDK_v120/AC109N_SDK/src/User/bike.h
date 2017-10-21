@@ -7,7 +7,7 @@
   * @brief
   ******************************************************************************
   * @Changlog
-  * V2.00
+  * V1.00
   *
   ******************************************************************************
   */
@@ -25,7 +25,6 @@
 #define TIME_ENABLE 0
 #define YXT_ENABLE  0				
 #define RESET_MILE_ENABLE
-//#define	LCD_SEG_TEST
 
 #define BIKE_EEPROM_START   0x80
 

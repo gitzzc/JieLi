@@ -39,9 +39,6 @@ void fm_play(void) AT(FM_CODE)
     u8 scan_counter;
     static bool mute=0;
 
-    fm_mode_var.wFreq = 1061;				//根据台号找频点
-    set_fre(FM_CUR_FRE);
-    fm_module_mute(0);
     UI_menu(MENU_FM_MAIN);
 
     while (1)
