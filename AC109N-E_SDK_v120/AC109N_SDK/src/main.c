@@ -271,7 +271,8 @@ static void sys_init(void) AT(CSTART)
 
     /*PLL初始化，会关总中断*/
 	pll_init();
-    //uart_setup();
+	bike_PowerUp();
+	//uart_setup();
     /*EEPROM verify*/
 	eeprom_verify();
 	/*DAC 初始化*/

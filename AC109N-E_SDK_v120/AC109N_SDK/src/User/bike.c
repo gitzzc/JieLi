@@ -647,6 +647,16 @@ void Calibration(void) AT(BIKE_CODE)
 }
 #endif
 
+void bike_PowerUp(void)
+{
+	HotReset();
+	if ( bike.HotReset == 0 ){
+		BL55072_Config(1);
+	} else {
+		BL55072_Config(1);
+	}
+}
+
 #define BIKE_INIT 		0
 #define BIKE_RESET_WAIT 1
 #define BIKE_RUN		2
@@ -663,12 +673,6 @@ void bike_task(void) AT(BIKE_CODE)
 	
 	switch(task){
 	case BIKE_INIT:
-		HotReset();
-		if ( bike.HotReset == 0 ){
-			BL55072_Config(1);
-		} else {
-			BL55072_Config(0);
-		}
 
 	//	for(i=0;i<32;i++){	GetVol();	/*IWDG_ReloadCounter(); */ }
 	//	for(i=0;i<16;i++){	GetSpeed();	/*IWDG_ReloadCounter(); */ }

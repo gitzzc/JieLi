@@ -276,7 +276,7 @@ void fm_mode(void) AT(FM_CODE)
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
-        system_clk_div(CLK_2M);
+        system_clk_div(CLK_24M);
         fm_play();
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();

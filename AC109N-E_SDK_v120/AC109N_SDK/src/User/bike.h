@@ -127,6 +127,7 @@ unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);
 void LRFlash_Task(void);
+void bike_PowerUp(void);
 
 /******************************************************************************/
 
