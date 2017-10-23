@@ -15,9 +15,9 @@
 #include "iic.h"
 
 //FM_RDA5807_VAR _xdata FM_rda5807_var;
-_no_init u8  rda5807_dat[12];
-_no_init u8  read_dat[10];
-_no_init u8  fm_type;
+_no_init u8 _idata rda5807_dat[12];
+_no_init u8 _xdata read_dat[10];
+_no_init u8 _xdata fm_type;
 
 #if 0
 /*--------------RDA5807SP Initial Table----------------*/
@@ -167,58 +167,73 @@ const u8 rda5807mp[] AT(RDA5807_TABLE_CODE)=
     0xC0,0x05,
 #endif
 //#endif
-    0x00,0x10,  //87-108M ,100HZ
-    0x04,0x00,
-    RDA5807_RSSI | 0xC0, 0xBF, //05h
-    0x60,0x00,
-    0x42,0x1A,//11
-
-    0x00,0x00,
-    0x00,0x00,
-    0x00,0x00,  //0x0ah
-    0x00,0x00,
-    0x00,0x00,
-    0x00,0x00,
-    0x00,0x00,
-    0x00,0x00,
-    0x00,0x00,  //0x10h
-    0x00,0x19,
-    0x2a,0x11,
+    0x00,
+    0x10,
+    0x04,
+    0x00,
+    RDA5807_RSSI | 0xC0, 
+    0xBF, //05h
+    0x60, 
+    0x00,
+    0x42, 
+    0x1A,//11
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,  //0x0ah
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,
+    0x00, 
+    0x00,
+    0x00,
+    0x00,  //0x10h
+    0x00, 
+    0x19,  
+    0x2a, 
+    0x11,
     0xB0,//0x80; 20110804
     0x42,//0x53;
     0x2a,//0x22; 20110804
     0x11,//º”¥Û“Ù¡ø0x31		wengyidong
     0xb8,//0xf8;		 20110804
     0x31,//0x30;  //0x15h
-    0xc0,
+    0xc0, 
     0x00,
-    0x2a,
+    0x2a, 
     0x91,
-    0x94,
+    0x94, 
     0x00,
-    0x00,
+    0x00, 
     0xa8,
-    0xc4,
+    0xc4, 
     0x00,  //0x1ah
     0xf7,//0xe0; 20110804
     0x0f,//0x00;
-    0x2a,//0x3a;20110804
+    0x2a,//0x3a;20110804 
     0xdc,//0x14;  //0x1ch
-    0x80,//0x81;20110804
+    0x80,//0x81;20110804 
     0x6f,//0x6a;
-    0x46,
+    0x46, 
     0x08,
-    0x00,
+    0x00, 
     0x86,
-    0x06,
+    0x06, 
     0x61,  //0x20h
-    0x00,
-    0x00,
-    0x10,
+    0x00, 
+    0x00,  
+    0x10, 
     0x9e,
-    0x23,//0x22;	20110804
+    0x23,//0x22;	20110804 
     0xc8,//0x44;
-    0x04,
+    0x04, 
     0x06,//0x08;  //0x24h 20110804
     0x0e,//0x0d;
     0x1c,//0x18;  //0x25h
@@ -281,6 +296,7 @@ void rda5807sp_init(void) AT(RDA5807_CODE)
 void rda5807mp_init(void) AT(RDA5807_CODE)
 {	
    app_IIC_write(RDA5807_WR_ADDRESS, 0xff, (u8 *)rda5807mp, 72);
+    
 }
 
 /*----------------------------------------------------------------------------*/
@@ -328,7 +344,6 @@ __root void init_RDA5807(void) AT(RDA5807_CODE)
 	rda5807_write(12);
 	delay_n10ms(5);
 
-#if 0
 	/*
 #if 1
 	rda5807_dat[7] &=~0x0F;
@@ -349,7 +364,6 @@ __root void init_RDA5807(void) AT(RDA5807_CODE)
 	}
 		
 	delay_n10ms(5);
-#endif
 }
 
 /*----------------------------------------------------------------------------*/
@@ -450,8 +464,6 @@ __root bool RDA5807_Read_ID(void) AT(RDA5807_CODE)
 	rda5807_read(10);
 	app_IIC_readn(RDA5807_RD_ADDRESS,0xff,(u8 *)rda5807_dat,10);
 
-   deg("RDA5807_Read_ID %u %u\n",read_dat[8],read_dat[9]);
-
 	if(read_dat[8]==0x58 && read_dat[9]==0x04)	//FM_RDA5807SP
 	{
         fm_type =  3;
@@ -476,10 +488,6 @@ __root bool RDA5807_Read_ID(void) AT(RDA5807_CODE)
 	return 1;
 }
 
-__root void RDA5807_setch(u8 db) AT(RDA5807_CODE)
-{
- db = db;
-}
 #endif
 
 
@@ -530,7 +538,8 @@ void init_RDA5807(void)
     rda5807_dat[3] = 0x10;
     rda5807_dat[4] = 0x04;
     rda5807_dat[5] = 0x0;
-    rda5807_dat[6] = 0x80 | 0x6;
+//    rda5807_dat[6] = 0x80 | 0x6;
+    rda5807_dat[6] = 0x80 | 0x0;
     rda5807_dat[7] = 0xbf;
     rda5807_dat[8] = 0x0;
     rda5807_dat[9] = 0x0;
@@ -563,7 +572,7 @@ bool set_fre_RDA5807(u16 fre)
     rda5807_dat[3] = ((pll & 0x0003)<<6)|0x10;
 
     rda5807_write(4);
-    delay_n10ms(10);
+    delay_n10ms(5);
     i = 0;
     do
     {
@@ -575,7 +584,7 @@ bool set_fre_RDA5807(u16 fre)
             return 1;
         }
     }
-    while (i<5);
+    while (i<3);
 
     return 0;
 }
@@ -643,5 +652,4 @@ void rda5807_setch(u8 db)
     db=db;
 }
 #endif
-
 

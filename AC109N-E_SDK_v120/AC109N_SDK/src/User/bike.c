@@ -201,7 +201,8 @@ void LRFlash_Task(void)
         right_off = 0;
         if ( right_on ++ > 20 ){
             right_on = 21;
-            right_count++;
+           	if ( right_count < 0xFF-50 )
+				right_count++;
 			bike.bRightFlash	= 1;
 			bike.bTurnRight 	= 1;
         }
@@ -232,11 +233,15 @@ void Light_Task(void) AT(BIKE_CODE)
     if( P30 ) {
       bike.NearLight = 1;
       P2PU  |= BIT(0);  //背光调节
+      P2HD  |= BIT(0);
+      P2DIE |= BIT(0);
       P2DIR &=~BIT(0);
       P20    = 0;
     } else {
       bike.NearLight = 0;
       P2PU  |= BIT(0);  //背光调节
+      P2HD  |= BIT(0);
+      P2DIE |= BIT(0);
       P2DIR &=~BIT(0);
       P20    = 1;
     }
@@ -306,6 +311,7 @@ void InitConfig(void) AT(BIKE_CODE)
 	bike.YXTERR = 1;
 	bike.Speed_dec = 0;
 	bike.bPlayFlash = 0;
+    bike.Tick = 0;
 	
     P3PU    &=~(BIT(3)|BIT(4));
     P3PD    &=~(BIT(3)|BIT(4));
@@ -653,7 +659,7 @@ void bike_PowerUp(void)
 	if ( bike.HotReset == 0 ){
 		BL55072_Config(1);
 	} else {
-		BL55072_Config(1);
+		BL55072_Config(0);
 	}
 }
 
@@ -712,8 +718,8 @@ void bike_task(void) AT(BIKE_CODE)
 			
 
 			if ( (count % 4 ) == 0 ){
-				if ( GetVolStabed(&vol) ){}
-				bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
+				if ( GetVolStabed(&vol) )
+					bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
 			}
 			//if ( (count % 10) == 0 ){
 			//	bike.Temperature= (long)GetTemp()	*1000UL/config.TempScale;

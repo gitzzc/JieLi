@@ -59,7 +59,6 @@ void fm_play(void) AT(FM_CODE)
 //            break;
 
         case MSG_FM_SCAN_ALL_INIT:
-            //deg("MSG_FM_SCAN_ALL_INIT\n");
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
@@ -77,7 +76,6 @@ void fm_play(void) AT(FM_CODE)
             }
 
         case MSG_FM_SCAN_ALL:
-            //deg("MSG_FM_SCAN_ALL\n");
             flush_all_msg();
             if (fm_scan(scan_mode))
             {
@@ -101,7 +99,7 @@ void fm_play(void) AT(FM_CODE)
                 else                            //半自动搜索，播放当前频点
                 {
                     scan_mode = FM_SCAN_STOP;
-                    //fm_module_mute(0);
+                    fm_module_mute(0);
                     break;
                 }
             }
@@ -183,7 +181,6 @@ void fm_play(void) AT(FM_CODE)
             bike_task();
             break;
         case MSG_HALF_SECOND:
-            //deg("MSG_HALF_SECOND\n");
             LED_FADE_OFF();
             UI_menu(MENU_MAIN);
             break;
@@ -267,22 +264,23 @@ void fm_mode(void) AT(FM_CODE)
 
     if (init_fm_rev())
     {
-        P2PD  |= BIT(5);
-        P2DIE |= BIT(5);
-        P2DIR &=~BIT(5);
-        P25    = 0;
+        //P2PD  |= BIT(5);
+        //P2DIE |= BIT(5);
+        //P2DIR &=~BIT(5);
+        //P25    = 0;
         //deg_puts("init_fm_rev ok\n");
         P2HD &= ~0x7;
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
-        system_clk_div(CLK_24M);
+        system_clk_div(CLK_2M);
+    	dac_mute(0);
         fm_play();
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();
         sd_chk_ctl(SET_SD_CHK_STEP, 20);
         P2HD |= 0x7;
-        P25    = 1;
+        //P25    = 1;
     }
     else					// no fm module
     {
