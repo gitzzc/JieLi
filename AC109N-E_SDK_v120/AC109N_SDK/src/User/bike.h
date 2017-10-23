@@ -47,7 +47,7 @@
 
 #define PON_ALLON_TIME		2000UL	//2000ms
 
-#define DISPLAY_MAX_SPEED	45UL	//40km/h
+#define DISPLAY_MAX_SPEED	99UL	//40km/h
 #define SPEEDMODE_DEFAULT	1		//1æ¡?
 
 /******************************************************************************/
@@ -74,7 +74,8 @@ typedef struct {
     unsigned char bShowWait	:1;
     unsigned char bPlayFlash:1;
     unsigned char bMute		:1;
-    unsigned char bLRFlashType	:1;
+    unsigned char bLFlashType	:1;
+    unsigned char bRFlashType	:1;
     unsigned char bLeftFlash	:1;	
     unsigned char bRightFlash	:1;	
     unsigned char bTurnLeft		:1;

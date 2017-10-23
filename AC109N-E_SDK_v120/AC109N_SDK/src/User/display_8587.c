@@ -51,11 +51,14 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	
 	for(i=0;i<18;i++)	BL_Data[i] = 0x00;
 	
-    if ( bike->bLRFlashType ){
-		if( bike->bLeftFlash 	)	LCD_LEFT();
-		if( bike->bRightFlash	)	LCD_RIGHT();
+    if ( bike->bLFlashType ){
+		if ( bike->bLeftFlash 	)	LCD_LEFT();
     } else {
-     	if (  bike->bLeftFlash 	&& flashflag >= 5 )	LCD_LEFT();
+     	if ( bike->bLeftFlash 	&& flashflag >= 5 )	LCD_LEFT();
+    }
+    if ( bike->bRFlashType ){
+		if ( bike->bRightFlash	)	LCD_RIGHT();
+    } else {
      	if (  bike->bRightFlash && flashflag >= 5 )	LCD_RIGHT();
     }
 	if( bike->NearLight 	) 		LCD_LIGHT();
@@ -283,7 +286,7 @@ void LCD_show_fm_station(void) AT(BIKE_CODE)
     /*FM - Station*/
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
  	bike.bShowVol = 0;
-    bike.uiShowFileNO = 6;  //3s
+    bike.uiShowFileNO = 2;  //2s
 }
 
 void LCD_show_filenumber(void) AT(BIKE_CODE)
@@ -291,7 +294,7 @@ void LCD_show_filenumber(void) AT(BIKE_CODE)
     /*Music File Number info*/
 	bike.uiPlayTime = 0;
 	bike.bShowVol = 0;
-    bike.uiShowFileNO = 6;  //3s
+    bike.uiShowFileNO = 2;  //2s
     bike.uiFileNO = playfile.given_file_number;
 }
 

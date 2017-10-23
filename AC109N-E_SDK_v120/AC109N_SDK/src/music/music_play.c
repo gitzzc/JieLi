@@ -215,6 +215,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
     u8 res;
     bool bres;
     static bool mute=0;
+    static u8 half_sec=0;
 
     UI_menu(MENU_MAIN);
 
@@ -466,6 +467,10 @@ void music_app_loop(void) AT(MUSIC_PLAY)
 #endif
             if (Music_Play_var.bPlayStatus != MAD_PLAY)
                 music_energy = 0;
+            if ( half_sec ++ == 20 ){
+                half_sec  = 0;
+                save_music_break_point(device_active);
+            }
             UI_menu(MENU_HALF_SEC_REFRESH);
             break;
 

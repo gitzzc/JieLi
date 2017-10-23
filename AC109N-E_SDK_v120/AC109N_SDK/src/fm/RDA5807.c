@@ -539,7 +539,7 @@ void init_RDA5807(void)
     rda5807_dat[4] = 0x04;
     rda5807_dat[5] = 0x0;
 //    rda5807_dat[6] = 0x80 | 0x6;
-    rda5807_dat[6] = 0x80 | 0x0;
+    rda5807_dat[6] = 0x80 | 0x4;
     rda5807_dat[7] = 0xbf;
     rda5807_dat[8] = 0x0;
     rda5807_dat[9] = 0x0;

@@ -237,6 +237,12 @@ static void ui_init(void) AT(CSTART)
 /*----------------------------------------------------------------------------*/
 static void sys_init(void) AT(CSTART)
 {
+    P2PU  |= BIT(0);  //背光调节,提高亮度
+    P2HD  |= BIT(0);
+    P2DIE |= BIT(0);
+    P2DIR &=~BIT(0);
+    P20    = 1;
+      
     /*IIC I/O init*/
     iic_init();
 
