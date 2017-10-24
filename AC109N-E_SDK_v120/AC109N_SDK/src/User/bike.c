@@ -130,24 +130,24 @@ void GetVolSample(void)
 unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 {
 	unsigned long mid;
-	static int buf[32];
+	//static int buf[32];
 	static unsigned char index = 0;
 	unsigned char i;
 	
 	for(i=0,mid=0;i<ContainOf(vol_buf);i++)
 		mid += vol_buf[i];
 	mid /= ContainOf(vol_buf);
-    
-	*vol = (mid>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
+
+	*vol = (mid>>6)*1033UL/1024UL*15/10;   //ADC/1024*103.3/3.3V*3.3V
 	//*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
-    
+
     //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
 
-	for(i=0,mid=0;i<32;i++)	mid += buf[i];
+	for(i=0,mid=0;i<32;i++)	mid += vol_buf[i];
 	mid /= 32;
 	for( i=0;i<32;i++){
-		//if ( mid > 5 && ((mid *100 / buf[i]) > 101 ||  (mid *100 / buf[i]) < 99) )
-		if ( mid > 5 && ((mid *100 / buf[i]) > 102 ||  (mid *100 / buf[i]) < 98) )
+		if ( mid > 20 && ((mid *100 / vol_buf[i]) > 101 ||  (mid *100 / vol_buf[i]) < 99) )
+		//if ( mid > 5 && ((mid *100 / buf[i]) > 102 ||  (mid *100 / buf[i]) < 98) )
 			return 0;
 	}
 	
@@ -240,7 +240,7 @@ void LRFlash_Task(void)
             }
            	if ( right_count < 0xFF-50 ){
 				right_count++;
-            }                
+            }
 			bike.bRightFlash	= 1;
 			bike.bTurnRight 	= 1;
         }
@@ -733,6 +733,12 @@ void bike_task(void) AT(BIKE_CODE)
 		//bike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
 	#endif
   	
+      	for(i=0;i<32;i++){	
+      		GetVolSample();
+      	}
+		GetVolStabed(&vol);
+		bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
+		bike.BatStatus 	= GetBatStatus(bike.Voltage);
 
 		if ( bike.HotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
@@ -747,12 +753,7 @@ void bike_task(void) AT(BIKE_CODE)
 		}
 		break;
     case BIKE_SETUP:
-      	for(i=0;i<32;i++){	
-      		GetVolSample(); 
-      	}
-		GetVolStabed(&vol);
-		bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
-		bike.BatStatus 	= GetBatStatus(bike.Voltage);
+        task = BIKE_RUN;
 	case BIKE_RUN:
 		//tick = Get_SysTick();
 		
@@ -761,8 +762,7 @@ void bike_task(void) AT(BIKE_CODE)
 		//	tick_100ms = tick;
 			count ++;
 
-		    GetVolSample();
-            if ( (count % 4) == 0 ){
+            if ( (count % 10) == 0 ){
 				if ( GetVolStabed(&vol) )
 					bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
             	//bike.Voltage    = GetVol()+400;
@@ -793,8 +793,9 @@ void bike_task(void) AT(BIKE_CODE)
 			bike.Hour       = count/10 + count/10*10;
 			bike.Minute     = count/10 + count/10*10;
 		#endif
+
+            //MenuUpdate(&bike);
 	
-			MenuUpdate(&bike);
 		//}
 		break;
 	default:

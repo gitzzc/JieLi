@@ -289,7 +289,7 @@ void LCD_show_fm_station(void) AT(BIKE_CODE)
     bike.uiShowFileNO = 2;  //2s
 }
 
-void LCD_show_filenumber(void) AT(BIKE_CODE)
+void LCD_show_file_number(void) AT(BIKE_CODE)
 {
     /*Music File Number info*/
 	bike.uiPlayTime = 0;

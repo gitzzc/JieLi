@@ -30,6 +30,7 @@
 #include "SPI.h"
 #include "LCD_SEG5X9.h"
 #include "bike.h"
+#include "display.h"
 
 
 _no_init void (_near_func * _pdata int_enter_pro[16])(void) AT(INTERRUPT_TABLE);
@@ -105,10 +106,12 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
         key_scan();
         dec_delay_counter();
         LRFlash_Task();
+		GetVolSample();
     }
     if ((cnt % 50) == 0)
     {
-        put_msg_fifo(MSG_100MS);
+		MenuUpdate(&bike);
+        put_msg_lifo(MSG_100MS);
     }
     if ((cnt % 250) == 0)
     {
@@ -242,7 +245,7 @@ static void sys_init(void) AT(CSTART)
     P2DIE |= BIT(0);
     P2DIR &=~BIT(0);
     P20    = 1;
-      
+
     /*IIC I/O init*/
     iic_init();
 

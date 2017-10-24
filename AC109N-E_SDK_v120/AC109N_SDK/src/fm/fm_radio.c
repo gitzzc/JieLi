@@ -269,7 +269,7 @@ void fm_mode(void) AT(FM_CODE)
         //P2DIR &=~BIT(5);
         //P25    = 0;
         //deg_puts("init_fm_rev ok\n");
-        P2HD &= ~0x7;
+        //P2HD &= ~0x7;
         sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
@@ -279,7 +279,7 @@ void fm_mode(void) AT(FM_CODE)
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();
         sd_chk_ctl(SET_SD_CHK_STEP, 20);
-        P2HD |= 0x7;
+        //P2HD |= 0x7;
         //P25    = 1;
     }
     else					// no fm module

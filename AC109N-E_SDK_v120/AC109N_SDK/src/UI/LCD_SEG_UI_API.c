@@ -281,7 +281,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
       break;
 
     case MENU_FILENUM:
-      LCD_show_filenumber();
+      LCD_show_file_number();
       break;
 
    /*-----FM Related UI*/
