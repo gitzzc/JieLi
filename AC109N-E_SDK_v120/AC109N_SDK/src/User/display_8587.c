@@ -59,7 +59,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
     if ( bike->bRFlashType ){
 		if ( bike->bRightFlash	)	LCD_RIGHT();
     } else {
-     	if (  bike->bRightFlash && flashflag >= 5 )	LCD_RIGHT();
+     	if ( bike->bRightFlash && flashflag >= 5 )	LCD_RIGHT();
     }
 	if( bike->NearLight 	) 		LCD_LIGHT();
 

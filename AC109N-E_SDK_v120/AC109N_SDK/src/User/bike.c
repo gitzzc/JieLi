@@ -118,6 +118,15 @@ int GetVol(void) AT(BIKE_CODE)
 	return vol;
 }
 
+void GetVolSample(void)
+{
+	static unsigned char index = 0;
+	
+    vol_buf[index++] = AD_var.wADValue[AD_BIKE_VOL];
+    if ( index >= ContainOf(vol_buf) )
+      index = 0;
+}
+
 unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 {
 	unsigned long mid;
@@ -125,10 +134,12 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 	static unsigned char index = 0;
 	unsigned char i;
 	
-	buf[index++] = AD_var.wADValue[AD_BIKE_VOL]>>6;
-	if ( index >= 32 )	index = 0;
-	
-	*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
+	for(i=0,mid=0;i<ContainOf(vol_buf);i++)
+		mid += vol_buf[i];
+	mid /= ContainOf(vol_buf);
+    
+	*vol = (mid>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
+	//*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
     
     //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
 
@@ -136,7 +147,7 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 	mid /= 32;
 	for( i=0;i<32;i++){
 		//if ( mid > 5 && ((mid *100 / buf[i]) > 101 ||  (mid *100 / buf[i]) < 99) )
-		if ( mid > 5 && ((mid *100 / buf[i]) > 103 ||  (mid *100 / buf[i]) < 97) )
+		if ( mid > 5 && ((mid *100 / buf[i]) > 102 ||  (mid *100 / buf[i]) < 98) )
 			return 0;
 	}
 	
@@ -694,7 +705,8 @@ void bike_PowerUp(void)
 
 #define BIKE_INIT 		0
 #define BIKE_RESET_WAIT 1
-#define BIKE_RUN		2
+#define BIKE_SETUP		2
+#define BIKE_RUN		3
 
 void bike_task(void) AT(BIKE_CODE)
 {
@@ -725,34 +737,37 @@ void bike_task(void) AT(BIKE_CODE)
 		if ( bike.HotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
 		} else {
-			task = BIKE_RUN;
-            GetVolStabed(&vol);
-            bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
-            //bike.Temperature = GetTemp();
+			task = BIKE_SETUP;
 		}
 		break;
 	case BIKE_RESET_WAIT:
 		if ( Get_SysTick() > PON_ALLON_TIME ){
 			BL55072_Config(0);
-			task = BIKE_RUN;
-            GetVolStabed(&vol);
-            bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
-            //bike.Temperature = GetTemp();
+			task = BIKE_SETUP;
 		}
 		break;
+    case BIKE_SETUP:
+      	for(i=0;i<32;i++){	
+      		GetVolSample(); 
+      	}
+		GetVolStabed(&vol);
+		bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
+		bike.BatStatus 	= GetBatStatus(bike.Voltage);
 	case BIKE_RUN:
-		tick = Get_SysTick();
+		//tick = Get_SysTick();
 		
-		if ( (tick >= tick_100ms && (tick - tick_100ms) >= 100 ) || \
-			 (tick <  tick_100ms && (0xFFFF - tick_100ms + tick) >= 100 ) ) {
-			tick_100ms = tick;
+		//if ( (tick >= tick_100ms && (tick - tick_100ms) >= 100 ) || \
+		//	 (tick <  tick_100ms && (0xFFFF - tick_100ms + tick) >= 100 ) ) {
+		//	tick_100ms = tick;
 			count ++;
-			
 
-            if ( GetVolStabed(&vol) )
-				bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
-            //bike.Voltage    = GetVol()+400;
-			bike.BatStatus 	= GetBatStatus(bike.Voltage);
+		    GetVolSample();
+            if ( (count % 4) == 0 ){
+				if ( GetVolStabed(&vol) )
+					bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
+            	//bike.Voltage    = GetVol()+400;
+				bike.BatStatus 	= GetBatStatus(bike.Voltage);
+            }
 			//if ( (count % 10) == 0 ){
 			//	bike.Temperature= (long)GetTemp()	*1000UL/config.TempScale;
 			//	bike.Temperature= GetTemp();
@@ -780,7 +795,7 @@ void bike_task(void) AT(BIKE_CODE)
 		#endif
 	
 			MenuUpdate(&bike);
-		}
+		//}
 		break;
 	default:
 		task = BIKE_INIT;
