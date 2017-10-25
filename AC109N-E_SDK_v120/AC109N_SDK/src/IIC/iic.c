@@ -171,6 +171,7 @@ void eeprom_verify(void) AT(IIC_CODE)
 #endif
 
 }
+
 /*----------------------------------------------------------------------------*/
 /** @brief: 记忆信息到存储器（EEPROM）
     @param: void
@@ -205,5 +206,4 @@ _near_func u8 get_memory(u8 addr) AT(COMMON_CODE)
     return read_IRTC_RAM(addr);
 #endif
 }
-
 

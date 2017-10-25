@@ -8,22 +8,12 @@
 #define BL55072_WRITE          	BL_ADDR
 #define BL55072_READ           	BL_ADDR+1
 
-void BL55072_WriteByte(u8 CW, u16 data2) AT(BIKE_CODE)  
-{
-	iic_busy = 1;
-	iic_start();
-	iic_sendbyte(BL55072_WRITE);
-	iic_sendbyte(CW);
-	iic_sendbyte(data2>>8);
-	iic_sendbyte(data2&0xFF);
-	iic_stop();
-	iic_busy = 0;
-}
-
 unsigned char BL55072_WriteBuf(u8 CW, u8* buf, u8 len) AT(BIKE_CODE)
 {
   unsigned char i;
-  
+	
+	if ( iic_busy ) return 0;
+
 	iic_busy = 1;
     iic_start();
 	iic_sendbyte(BL55072_WRITE);
@@ -31,7 +21,7 @@ unsigned char BL55072_WriteBuf(u8 CW, u8* buf, u8 len) AT(BIKE_CODE)
 		iic_sendbyte(buf[i]);
 	iic_stop();
 	iic_busy = 0;
-  
+
   return 1;
 }
 
