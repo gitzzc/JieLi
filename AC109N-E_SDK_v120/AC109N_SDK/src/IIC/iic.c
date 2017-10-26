@@ -6,7 +6,8 @@
    @date    2012-8-30
    @note    AC109N
 */
-/*----------------------------------------------------------------------------*/#include "iic.h"
+/*----------------------------------------------------------------------------*/
+#include "iic.h"
 #include "RTC_API.h"
 #include "sdmmc_api.h"
 #include "play_file.h"
@@ -182,12 +183,14 @@ void eeprom_verify(void) AT(IIC_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func void set_memory(u8 addr, u8 dat) AT(COMMON_CODE)
 {
+    //EA = 0;
 #ifdef USE_EEPROM_MEMORY
     write_eerom(addr, dat);
 #endif
 #ifdef USE_IRTC_MEMORY
     write_IRTC_RAM(addr, dat);
 #endif
+    //EA = 1;
 }
 /*----------------------------------------------------------------------------*/
 /** @brief: 获取记忆信息（EEPROM）
@@ -199,11 +202,18 @@ _near_func void set_memory(u8 addr, u8 dat) AT(COMMON_CODE)
 /*----------------------------------------------------------------------------*/
 _near_func u8 get_memory(u8 addr) AT(COMMON_CODE)
 {
+    u8 ret;
+    
+    //EA = 0;
 #ifdef USE_EEPROM_MEMORY
-    return read_eerom(addr);
+//    return read_eerom(addr);
+    ret = read_eerom(addr);
 #endif
 #ifdef USE_IRTC_MEMORY
-    return read_IRTC_RAM(addr);
+//    return read_IRTC_RAM(addr);
+    ret = read_IRTC_RAM(addr);
 #endif
+    //EA = 1;
+    return ret;
 }
 

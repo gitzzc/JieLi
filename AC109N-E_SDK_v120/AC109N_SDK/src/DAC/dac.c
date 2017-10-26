@@ -514,7 +514,6 @@ _near_func void dac_channel_sel(u8 channel) AT(COMMON_CODE)
         temp |= 0x0c;
         DAA_CON4 = temp;
         DAA_CON0 |= BIT(4);
-
         amux = 1;
     }
 

@@ -7,6 +7,9 @@
   * @brief
   ******************************************************************************
   * @Changlog
+  * V1.04
+  * 增加速度调整功能
+  * 
   * V1.00
   * 左右转信号开关和闪光器自动识别，电压两级滤波。
   ******************************************************************************
@@ -90,8 +93,6 @@ typedef struct {
 	unsigned char Speed;
 	unsigned char PHA_Speed;
 	unsigned char YXT_Speed;
-			 char Speed_dec;
-	unsigned char SpeedAdj;
 	unsigned long Mile;
 	unsigned long FMile;
 	unsigned int  Tick;

@@ -138,7 +138,7 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 		mid += vol_buf[i];
 	mid /= ContainOf(vol_buf);
 
-	*vol = (mid>>6)*1033UL/1024UL*15/10;   //ADC/1024*103.3/3.3V*3.3V
+	*vol = (mid>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
 	//*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
 
     //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
@@ -264,30 +264,34 @@ void Light_Task(void) AT(BIKE_CODE)
 {
 	unsigned char speed_mode=0;
 	
-	P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
-	P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
-	P3DIE 	|= (BIT(2)|BIT(1)|BIT(0));
-    P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
-
-    if( P30 ) {
-      bike.NearLight = 1;
-      P2PU  |= BIT(0);  //背光调节
-      P2HD  |= BIT(0);
-      P2DIE |= BIT(0);
-      P2DIR &=~BIT(0);
-      P20    = 0;
-    } else {
-      bike.NearLight = 0;
-      P2PU  |= BIT(0);  //背光调节
-      P2HD  |= BIT(0);
-      P2DIE |= BIT(0);
-      P2DIR &=~BIT(0);
-      P20    = 1;
-    }
-	//if( P31 ) bike.bTurnRight = 1; else bike.bTurnRight = 0;
-	//if( P32 ) bike.bTurnLeft  = 1; else bike.bTurnLeft  = 0;
-	bike.PHA_Speed = (unsigned long)GetSpeed();
-	bike.Speed = (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale + bike.Speed_dec;
+	//if ( bike.YXTERR )
+    {
+		P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
+		P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
+		P3DIE 	|= (BIT(2)|BIT(1)|BIT(0));
+		P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
+	
+		if( P30 ) {
+		  bike.NearLight = 1;
+		  P2PU  |= BIT(0);  //背光调节
+		  P2HD  |= BIT(0);
+		  P2DIE |= BIT(0);
+		  P2DIR &=~BIT(0);
+		  P20    = 0;
+		} else {
+		  bike.NearLight = 0;
+		  P2PU  |= BIT(0);  //背光调节
+		  P2HD  |= BIT(0);
+		  P2DIE |= BIT(0);
+		  P2DIR &=~BIT(0);
+		  P20    = 1;
+		}
+		//if( P31 ) bike.bTurnRight = 1; else bike.bTurnRight = 0;
+		//if( P32 ) bike.bTurnLeft  = 1; else bike.bTurnLeft  = 0;
+        
+		bike.PHA_Speed 	= (unsigned long)GetSpeed();
+		bike.Speed 		= (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale;
+    }	
 }
 
 void HotReset(void) AT(BIKE_CODE)
@@ -348,7 +352,6 @@ void InitConfig(void) AT(BIKE_CODE)
 #endif
 	//bike.SpeedMode = SPEEDMODE_DEFAULT;
 	bike.YXTERR = 1;
-	bike.Speed_dec = 0;
 	bike.bPlayFlash = 0;
     bike.Tick = 0;
 	
@@ -409,8 +412,7 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 	case TASK_STEP1:
 		if ( lastLight == 0 && bike.NearLight){
 			pre_tick = Get_SysTick();
-			count ++;
-			if ( count >= 8 ){
+			if ( ++count >= 8 ){
 				bike.MileFlash = 1;
 				bike.Mile = config.Mile;
 				TaskFlag = TASK_STEP2;
@@ -642,6 +644,93 @@ void TimeTask(void) AT(BIKE_CODE)
 
 #endif
 
+
+unsigned char SpeedCaltTask(void)
+{
+	static unsigned int pre_tick=0;
+	static unsigned char TaskFlag = TASK_INIT;
+	static unsigned char lastLight = 0,lastSpeed = 0;
+	static unsigned char count = 0;
+    static char Speed_dec=0;
+	
+	if ( Get_ElapseTick(pre_tick) > 10000 | bike.Braked )
+		TaskFlag = TASK_EXIT;
+
+	switch( TaskFlag ){
+	case TASK_INIT:
+		if ( Get_SysTick() < 3000 && bike.bTurnLeft == 1 ){
+			TaskFlag = TASK_STEP1;
+			count = 0;
+		}
+		break;
+	case TASK_STEP1:
+		if ( lastLight == 0 && bike.NearLight){
+			if ( ++count >= 8 ){
+				TaskFlag = TASK_STEP2;
+			}
+			pre_tick = Get_SysTick();
+		}
+		lastLight = bike.NearLight;
+		break;
+	case TASK_STEP2:
+		if ( bike.bTurnLeft == 0 && bike.bTurnRight == 0 ) {
+			TaskFlag 	= TASK_STEP3;
+			count 		= 0;
+			Speed_dec 	= 0;
+            bike.Speed 	= 42;
+			bike.SpeedFlash = 1;
+			pre_tick = Get_SysTick();
+		}
+		break;
+	case TASK_STEP3:
+        if ( config.SysVoltage == 48 )
+			bike.Speed = 42;
+        else if ( config.SysVoltage == 60 )
+			bike.Speed = 44;
+
+		if ( lastLight == 1 && bike.NearLight == 0 ){
+			pre_tick = Get_SysTick();
+			if ( bike.bTurnLeft == 1 ) {
+				count = 0;
+	            if ( bike.Speed + Speed_dec )
+					Speed_dec --;
+			} else if ( bike.bTurnRight == 1 ) {
+				count = 0;
+				Speed_dec ++;
+			} else {
+				if ( ++count >= 5 ){
+					TaskFlag = TASK_EXIT;
+					bike.SpeedFlash = 0;
+					//if ( bike.Speed )
+                    {
+						if ( bike.YXTERR )
+							config.SpeedScale 		= (unsigned int)bike.Speed*1000UL/(bike.Speed+Speed_dec);
+						else
+							config.YXT_SpeedScale 	= (unsigned int)bike.Speed*1000UL/(bike.Speed+Speed_dec);
+						WriteConfig();
+					}
+				}
+			}
+		}
+		lastLight = bike.NearLight;
+    
+		//if ( lastSpeed && bike.Speed == 0 ){
+		//	TaskFlag = TASK_EXIT;
+		//}
+		if ( bike.Speed )
+			pre_tick = Get_SysTick();
+        
+        bike.Speed += Speed_dec;
+        lastSpeed = bike.Speed;
+		break;
+	case TASK_EXIT:
+	default:
+		bike.SpeedFlash = 0;
+		break;
+	}
+	return 0;
+}
+
 #if 0
 void Calibration(void) AT(BIKE_CODE)
 {
@@ -721,7 +810,7 @@ void bike_task(void) AT(BIKE_CODE)
 	switch(task){
 	case BIKE_INIT:
 
-	//	for(i=0;i<32;i++){	GetVol();	/*IWDG_ReloadCounter(); */ }
+		for(i=0;i<32;i++){	GetVolSample(); }
 	//	for(i=0;i<16;i++){	GetSpeed();	/*IWDG_ReloadCounter(); */ }
 	//	for(i=0;i<4;i++) {	GetTemp();	/*IWDG_ReloadCounter(); */ }
 
@@ -733,9 +822,6 @@ void bike_task(void) AT(BIKE_CODE)
 		//bike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
 	#endif
   	
-      	for(i=0;i<32;i++){	
-      		GetVolSample();
-      	}
 		GetVolStabed(&vol);
 		bike.Voltage = (unsigned long)vol*1000UL/config.VolScale;
 		bike.BatStatus 	= GetBatStatus(bike.Voltage);
@@ -776,13 +862,16 @@ void bike_task(void) AT(BIKE_CODE)
 			Light_Task();
 			MileTask();
 			
-		#ifdef RESET_MILE_ENABLE	
-			MileResetTask();
-		#endif	
 					
 		#if ( TIME_ENABLE == 1 )	
 			TimeTask();
 		#endif
+            
+		#ifdef RESET_MILE_ENABLE	
+			MileResetTask();
+		#endif	
+
+            SpeedCaltTask();
 
 		#ifdef LCD_SEG_TEST
 			if ( count >= 100 ) count = 0;
