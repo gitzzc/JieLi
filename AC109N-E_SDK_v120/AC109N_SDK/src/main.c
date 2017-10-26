@@ -110,7 +110,7 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
     }
     if ((cnt % 50) == 0)
     {
-		MenuUpdate(&bike);
+		//MenuUpdate(&bike);
         put_msg_lifo(MSG_100MS);
     }
     if ((cnt % 250) == 0)
@@ -281,7 +281,7 @@ static void sys_init(void) AT(CSTART)
     /*PLL初始化，会关总中断*/
 	pll_init();
 	bike_PowerUp();
-	//uart_setup();
+	uart_setup();
     /*EEPROM verify*/
 	eeprom_verify();
 	/*DAC 初始化*/

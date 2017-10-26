@@ -161,7 +161,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	unsigned char i;
 
 	vol = AD_var.wADValue[AD_BIKE_SPEED]>>6;
-    //deg("GetSpeed %u\n",AD_var.wADValue[AD_BIKE_SPEED]>>6);
+    //deg("wADValue %u ",AD_var.wADValue[AD_BIKE_SPEED]>>6);
  	
 	speed_buf[index++] = vol;
 	if ( index >= ContainOf(speed_buf) )
@@ -170,6 +170,8 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	for(i=0,vol=0;i<ContainOf(speed_buf);i++)
 		vol += speed_buf[i];
 	vol /= ContainOf(speed_buf);
+    vol = (unsigned long)vol*1033/1024;
+    //deg("vol %u\n",vol);
 	
 	if ( config.SysVoltage	== 48 ){	
       if ( vol < 210 ){
@@ -288,9 +290,10 @@ void Light_Task(void) AT(BIKE_CODE)
 		}
 		//if( P31 ) bike.bTurnRight = 1; else bike.bTurnRight = 0;
 		//if( P32 ) bike.bTurnLeft  = 1; else bike.bTurnLeft  = 0;
-        
+
 		bike.PHA_Speed 	= (unsigned long)GetSpeed();
 		bike.Speed 		= (unsigned long)bike.PHA_Speed*1000UL/config.SpeedScale;
+    	//deg("PHA_Speed=%u,SpeedScale=%u,Speed=%u\n",bike.PHA_Speed,config.SpeedScale,bike.Speed);
     }	
 }
 
@@ -651,9 +654,11 @@ unsigned char SpeedCaltTask(void)
 	static unsigned char TaskFlag = TASK_INIT;
 	static unsigned char lastLight = 0,lastSpeed = 0;
 	static unsigned char count = 0;
-    static char Speed_dec=0;
+    static signed char Speed_dec=0;
 	
-	if ( Get_ElapseTick(pre_tick) > 10000 | bike.Braked )
+    if ( TaskFlag == TASK_EXIT )
+      	return 0;
+	if ( Get_ElapseTick(pre_tick) > 10000 || bike.Braked )
 		TaskFlag = TASK_EXIT;
 
 	switch( TaskFlag ){
@@ -677,7 +682,6 @@ unsigned char SpeedCaltTask(void)
 			TaskFlag 	= TASK_STEP3;
 			count 		= 0;
 			Speed_dec 	= 0;
-            bike.Speed 	= 42;
 			bike.SpeedFlash = 1;
 			pre_tick = Get_SysTick();
 		}
@@ -704,22 +708,22 @@ unsigned char SpeedCaltTask(void)
 					//if ( bike.Speed )
                     {
 						if ( bike.YXTERR )
-							config.SpeedScale 		= (unsigned int)bike.Speed*1000UL/(bike.Speed+Speed_dec);
+							config.SpeedScale 		= (unsigned long)bike.Speed*1000UL/(bike.Speed+Speed_dec);
 						else
-							config.YXT_SpeedScale 	= (unsigned int)bike.Speed*1000UL/(bike.Speed+Speed_dec);
+							config.YXT_SpeedScale 	= (unsigned long)bike.Speed*1000UL/(bike.Speed+Speed_dec);
 						WriteConfig();
 					}
 				}
 			}
 		}
 		lastLight = bike.NearLight;
-    
+
 		//if ( lastSpeed && bike.Speed == 0 ){
 		//	TaskFlag = TASK_EXIT;
 		//}
-		if ( bike.Speed )
-			pre_tick = Get_SysTick();
-        
+		//if ( bike.Speed )
+		//	pre_tick = Get_SysTick();
+
         bike.Speed += Speed_dec;
         lastSpeed = bike.Speed;
 		break;
@@ -866,7 +870,7 @@ void bike_task(void) AT(BIKE_CODE)
 		#if ( TIME_ENABLE == 1 )	
 			TimeTask();
 		#endif
-            
+
 		#ifdef RESET_MILE_ENABLE	
 			MileResetTask();
 		#endif	
@@ -883,7 +887,7 @@ void bike_task(void) AT(BIKE_CODE)
 			bike.Minute     = count/10 + count/10*10;
 		#endif
 
-            //MenuUpdate(&bike);
+            MenuUpdate(&bike);
 	
 		//}
 		break;

@@ -111,11 +111,11 @@ const u16 digital_vol_tab[] AT(DAC_TABLE_CODE)=
 /*----------------------------------------------------------------------------*/
 void set_digital_vol(u8 L_vol, u8 R_vol) AT(DAC_CODE)
 {
-    DAC_VLML = (u8)(digital_vol_tab[L_vol]>>8);
-    DAC_VLML = (u8)digital_vol_tab[L_vol];
+    DAC_VLML = (u8)((digital_vol_tab[L_vol*8/10])>>8);
+    DAC_VLML = (u8)(digital_vol_tab[L_vol*8/10]);
 
-    DAC_VLMR = (u8)(digital_vol_tab[R_vol]>>8);
-    DAC_VLMR = (u8)digital_vol_tab[R_vol];
+    DAC_VLMR = (u8)((digital_vol_tab[R_vol*8/10])>>8);
+    DAC_VLMR = (u8)(digital_vol_tab[R_vol*8/10]);
 }
 
 /*----------------------------------------------------------------------------*/

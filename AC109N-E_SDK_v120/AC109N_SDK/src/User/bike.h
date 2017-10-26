@@ -9,7 +9,7 @@
   * @Changlog
   * V1.04
   * 增加速度调整功能
-  * 
+  *
   * V1.00
   * 左右转信号开关和闪光器自动识别，电压两级滤波。
   ******************************************************************************
@@ -86,7 +86,7 @@ typedef struct {
     unsigned char bLcdFresh		:1;
 
 	unsigned char SpeedMode;
-			 int  Temperature;
+	signed int  Temperature;
 	unsigned int  Voltage;
 	unsigned char BatStatus;
 	unsigned char Energy;

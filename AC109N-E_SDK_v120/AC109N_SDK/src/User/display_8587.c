@@ -210,8 +210,8 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 
 	/*************************** Speed Display**********************************/
 	LCD_KMH();
-	BL_Data[14] |= (SegDataSpeed[bike->Speed/10]);
-	BL_Data[13] |= (SegDataSpeed[bike->Speed%10]);
+	BL_Data[14] |= (SegDataSpeed[(bike->Speed/10)	%10]);
+	BL_Data[13] |= (SegDataSpeed[ bike->Speed		%10]);
 	if ( bike->SpeedFlash ){
 		if ( flashflag < 5  ) {
 			BL_Data[14] &= 0x08;

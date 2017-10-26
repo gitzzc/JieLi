@@ -14,7 +14,7 @@
 #include "device.h"
 #include "IRTC.h"
 
-//#define IIC_DAT_USE_P02
+#define IIC_DAT_USE_P02
 
 bool iic_busy;
 
@@ -203,7 +203,7 @@ _near_func void set_memory(u8 addr, u8 dat) AT(COMMON_CODE)
 _near_func u8 get_memory(u8 addr) AT(COMMON_CODE)
 {
     u8 ret;
-    
+
     //EA = 0;
 #ifdef USE_EEPROM_MEMORY
 //    return read_eerom(addr);
