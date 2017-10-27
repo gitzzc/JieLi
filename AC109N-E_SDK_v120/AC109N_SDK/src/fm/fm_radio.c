@@ -36,7 +36,7 @@ _no_init u8 _data scan_mode;
 /*----------------------------------------------------------------------------*/
 void fm_play(void) AT(FM_CODE)
 {
-    u8 scan_counter;
+    u8 scan_counter,i;
     static bool mute=0;
 
     UI_menu(MENU_FM_MAIN);
@@ -236,7 +236,10 @@ void fm_play(void) AT(FM_CODE)
           }
           break;
         case MSG_STOP:
-            dac_mute(1);
+    		//for(i=0;i<100;i++)
+	    		//delay_n10ms(100);
+
+    		dac_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
             work_mode = OFF_MODE;
             UI_menu(MENU_STOP);

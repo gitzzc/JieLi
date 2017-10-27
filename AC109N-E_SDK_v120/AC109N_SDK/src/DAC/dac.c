@@ -111,11 +111,11 @@ const u16 digital_vol_tab[] AT(DAC_TABLE_CODE)=
 /*----------------------------------------------------------------------------*/
 void set_digital_vol(u8 L_vol, u8 R_vol) AT(DAC_CODE)
 {
-    DAC_VLML = (u8)((digital_vol_tab[L_vol*8/10])>>8);
-    DAC_VLML = (u8)(digital_vol_tab[L_vol*8/10]);
+    DAC_VLML = (u8)((digital_vol_tab[L_vol])>>8);
+    DAC_VLML = (u8)(digital_vol_tab[L_vol]);
 
-    DAC_VLMR = (u8)((digital_vol_tab[R_vol*8/10])>>8);
-    DAC_VLMR = (u8)(digital_vol_tab[R_vol*8/10]);
+    DAC_VLMR = (u8)((digital_vol_tab[R_vol])>>8);
+    DAC_VLMR = (u8)(digital_vol_tab[R_vol]);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -173,12 +173,12 @@ _near_func void set_key_tone(void) AT(COMMON_CODE)
     if (amux)     //amux
     {
         DAA_CON0 |= BIT(0);
-        KV_VLM = 31;                    //按键音的音量
+        KV_VLM = 31/2;                    //按键音的音量
         key_voice_counter = 40;         //按键音播放时间：80ms,此时间需根据按键音数据表和重复次数及按键音采样率决定
     }
     else
     {
-        KV_VLM = ((digital_vol_tab[main_vol_L]>>8) + (digital_vol_tab[main_vol_R]>>8))/2;     //按键音的音量
+        KV_VLM = ((digital_vol_tab[main_vol_L]>>8) + (digital_vol_tab[main_vol_R]>>8))/8;     //按键音的音量
     }
     KV_CNT = 0;
     KV_CNT = 20;                      //按键音重复次数
