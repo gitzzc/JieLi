@@ -14,7 +14,7 @@
 #include "device.h"
 #include "IRTC.h"
 
-#define IIC_DAT_USE_P02
+//#define IIC_DAT_USE_P02
 
 bool iic_busy;
 

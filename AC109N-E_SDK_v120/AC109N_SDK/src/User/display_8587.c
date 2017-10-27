@@ -61,12 +61,12 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
     } else {
      	if ( bike->bRightFlash && flashflag >= 5 )	LCD_RIGHT();
     }
-	if( bike->NearLight 	) 		LCD_LIGHT();
+	if( bike->bNearLight 	) 		LCD_LIGHT();
 
     /***************************Battery Area Display**********************************/
 	BL_Data[15] |= 0x80;	//T0
     BL_Data[ 8] |= 0x10;	//T10
-	switch ( bike->BatStatus ){
+	switch ( bike->ucBatStatus ){
     case 0:
 		if ( flashflag < 5 )
 			BL_Data[ 8] &=~0x10;break;	//T0
@@ -91,10 +91,10 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 		LCD_DEGREE_NIG();
 */	
 	/*************************** Voltage Display**********************************/
-	BL_Data[ 7] |= SegDataVoltage[(bike->Voltage/100)%10];
-	BL_Data[ 6] |= SegDataVoltage[(bike->Voltage/10	)%10];
-	BL_Data[ 4] |= SegDataVoltage[(bike->Voltage	)%10] & 0xF0;
-	BL_Data[ 3] |= SegDataVoltage[(bike->Voltage	)%10] & 0x0F;
+	BL_Data[ 7] |= SegDataVoltage[(bike->uiVoltage/100)%10];
+	BL_Data[ 6] |= SegDataVoltage[(bike->uiVoltage/10	)%10];
+	BL_Data[ 4] |= SegDataVoltage[(bike->uiVoltage	)%10] & 0xF0;
+	BL_Data[ 3] |= SegDataVoltage[(bike->uiVoltage	)%10] & 0x0F;
 	LCD_V();LCD_VDOT();	
 		
 	/***************************Time Area Display**********************************/
@@ -187,17 +187,17 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	
 	/*************************** Mile Display**********************************/
 	LCD_KM();	
-	BL_Data[ 5] |= SegDataMile [(bike->Mile/10000)%10] & 0xF0;
-	BL_Data[ 4] |= SegDataMile [(bike->Mile/10000)%10] & 0x0F;
-	BL_Data[ 0] |= SegDataMile [(bike->Mile/1000 )%10] & 0xF0;
-	BL_Data[ 5] |= SegDataMile [(bike->Mile/1000 )%10] & 0x0F;
-	BL_Data[ 1] |= SegDataMile [(bike->Mile/100  )%10] & 0xF0;
-	BL_Data[ 0] |= SegDataMile [(bike->Mile/100  )%10] & 0x0F;
-	BL_Data[ 2] |= SegDataMile [(bike->Mile/10   )%10] & 0xF0;
-	BL_Data[ 1] |= SegDataMile [(bike->Mile/10   )%10] & 0x0F;
-	BL_Data[ 3] |= SegDataMile [(bike->Mile   	 )%10] & 0xF0;
-	BL_Data[ 2] |= SegDataMile [(bike->Mile	     )%10] & 0x0F;
-	if ( bike->MileFlash ){
+	BL_Data[ 5] |= SegDataMile [(bike->ulMile/10000)%10] & 0xF0;
+	BL_Data[ 4] |= SegDataMile [(bike->ulMile/10000)%10] & 0x0F;
+	BL_Data[ 0] |= SegDataMile [(bike->ulMile/1000 )%10] & 0xF0;
+	BL_Data[ 5] |= SegDataMile [(bike->ulMile/1000 )%10] & 0x0F;
+	BL_Data[ 1] |= SegDataMile [(bike->ulMile/100  )%10] & 0xF0;
+	BL_Data[ 0] |= SegDataMile [(bike->ulMile/100  )%10] & 0x0F;
+	BL_Data[ 2] |= SegDataMile [(bike->ulMile/10   )%10] & 0xF0;
+	BL_Data[ 1] |= SegDataMile [(bike->ulMile/10   )%10] & 0x0F;
+	BL_Data[ 3] |= SegDataMile [(bike->ulMile   	 )%10] & 0xF0;
+	BL_Data[ 2] |= SegDataMile [(bike->ulMile	     )%10] & 0x0F;
+	if ( bike->bMileFlash ){
 		if ( flashflag < 5  ) {
 			BL_Data[ 4] &= 0xF0;
 			BL_Data[ 5] &= 0x08;
@@ -210,9 +210,9 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 
 	/*************************** Speed Display**********************************/
 	LCD_KMH();
-	BL_Data[14] |= (SegDataSpeed[(bike->Speed/10)	%10]);
-	BL_Data[13] |= (SegDataSpeed[ bike->Speed		%10]);
-	if ( bike->SpeedFlash ){
+	BL_Data[14] |= (SegDataSpeed[(bike->ucSpeed/10)	%10]);
+	BL_Data[13] |= (SegDataSpeed[ bike->ucSpeed		%10]);
+	if ( bike->bSpeedFlash ){
 		if ( flashflag < 5  ) {
 			BL_Data[14] &= 0x08;
 			BL_Data[13] &= 0x08;

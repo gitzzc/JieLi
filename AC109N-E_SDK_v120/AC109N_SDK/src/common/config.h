@@ -16,8 +16,8 @@
 #define __SMART_CPU__
 #define WDT_CLEAR()     WDT_CON |= BIT(6)
 
-//#ifndef NDEBUG
-#ifdef NDEBUG
+#ifndef NDEBUG
+//#ifdef NDEBUG
 
 #define _near_func __near_func
 #define _banked_func __banked_func

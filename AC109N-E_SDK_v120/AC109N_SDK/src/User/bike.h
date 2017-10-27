@@ -55,47 +55,52 @@
 
 /******************************************************************************/
 typedef struct {
-	unsigned char NearLight	:1;
-	unsigned char CRZLight	:1;
-	unsigned char Cruise	:1;
-	unsigned char ECUERR	:1;
-	unsigned char Braked	:1;
-	unsigned char PhaseERR	:1;
-	unsigned char HallERR	:1;
-	unsigned char WheelERR	:1;
-	unsigned char YXTERR	:1;
-	unsigned char HasTimer	:1;
-	unsigned char time_set	:1;
-	unsigned char uart		:1;	
-	unsigned char HotReset	:1;	
-	unsigned char MileFlash	:1;	
-	unsigned char SpeedFlash:1;	
-	unsigned char BT		:1;	
-	unsigned char MP3		:1;	
-	unsigned char FM		:1;	
-	unsigned char bShowVol	:1;	
-    unsigned char bShowWait	:1;
-    unsigned char bPlayFlash:1;
-    unsigned char bMute		:1;
     unsigned char bLFlashType	:1;
     unsigned char bRFlashType	:1;
     unsigned char bLeftFlash	:1;	
     unsigned char bRightFlash	:1;	
     unsigned char bTurnLeft		:1;
     unsigned char bTurnRight	:1;
-    unsigned char bLcdFresh		:1;
+    unsigned char bLastLeft		:1;
+    unsigned char bLastRight	:1;
 
-	unsigned char SpeedMode;
-	signed int  Temperature;
-	unsigned int  Voltage;
-	unsigned char BatStatus;
-	unsigned char Energy;
-	unsigned char Speed;
-	unsigned char PHA_Speed;
-	unsigned char YXT_Speed;
-	unsigned long Mile;
-	unsigned long FMile;
-	unsigned int  Tick;
+	unsigned char bHotReset		:1;	
+	unsigned char bNearLight	:1;
+	unsigned char bLastNear		:1;
+	unsigned char bBraked		:1;
+	unsigned char bCruise		:1;
+    unsigned char bLcdFresh		:1;
+	unsigned char bMileFlash	:1;	
+	unsigned char bSpeedFlash	:1;	
+    
+	unsigned char bECUERR		:1;
+	unsigned char bPhaseERR		:1;
+	unsigned char bHallERR		:1;
+	unsigned char bWheelERR		:1;
+	unsigned char bYXTERR		:1;
+	unsigned char bHasTimer		:1;
+	unsigned char bTimeSet		:1;
+	unsigned char bUart			:1;	
+    
+	unsigned char bBT			:1;	
+	unsigned char bMP3			:1;	
+	unsigned char bFM			:1;	
+	unsigned char bShowVol		:1;	
+    unsigned char bShowWait		:1;
+    unsigned char bPlayFlash	:1;
+    unsigned char bMute			:1;
+
+	unsigned char ucSpeedMode;
+	signed int    siTemperature;
+	unsigned int  uiVoltage;
+	unsigned char ucBatStatus;
+	unsigned char ucEnergy;
+	unsigned char ucSpeed;
+	unsigned char ucPHA_Speed;
+	unsigned char ucYXT_Speed;
+	unsigned long ulMile;
+	unsigned long ulFMile;
+	unsigned int  uiTick;
 	unsigned int  uiPlayTime;
 	unsigned int  uiShowFileNO;
 	unsigned int  uiPlayMedia;
@@ -105,22 +110,22 @@ typedef struct {
 	unsigned int  uiFM_Channel;
 	unsigned int  uiPlayStatus;
 	
-	unsigned char Hour;
-	unsigned char Minute;
-	unsigned char Second;
-	unsigned char time_pos;
+	unsigned char ucHour;
+	unsigned char ucMinute;
+	unsigned char ucSecond;
+	unsigned char ucTimePos;
 	
 } BIKE_STATUS,*pBIKE_STATUS;
 	
 typedef struct {
-	unsigned char bike[4];
-	unsigned int  SysVoltage;
-	unsigned int  VolScale	;
-	unsigned int  TempScale	;
-	unsigned int  SpeedScale;
-	unsigned int  YXT_SpeedScale;
-	unsigned long Mile;
-	unsigned char Sum;
+	unsigned char ucBike[4];
+	unsigned int  uiSysVoltage;
+	unsigned int  uiVolScale;
+	unsigned int  uiTempScale;
+	unsigned int  uiSpeedScale;
+	unsigned int  uiYXT_SpeedScale;
+	unsigned long ulMile;
+	unsigned char ucSum;
 } BIKE_CONFIG,*pBIKE_CONFIG;
 	
 extern BIKE_STATUS bike;
