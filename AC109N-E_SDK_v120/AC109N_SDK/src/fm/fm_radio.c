@@ -26,6 +26,7 @@
 extern ENUM_WORK_MODE _data work_mode;
 _no_init FM_MODE_VAR _data fm_mode_var;
 _no_init u8 _data scan_mode;
+extern _no_init bool _data key_mute;    //music_play.c
 
 /*----------------------------------------------------------------------------*/
 /**@brief    FM 模式主循环
@@ -37,7 +38,6 @@ _no_init u8 _data scan_mode;
 void fm_play(void) AT(FM_CODE)
 {
     u8 scan_counter,i;
-    static bool mute=0;
 
     UI_menu(MENU_FM_MAIN);
 
@@ -59,6 +59,7 @@ void fm_play(void) AT(FM_CODE)
 //            break;
 
         case MSG_FM_SCAN_ALL_INIT:
+            fm_module_mute(1);
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
@@ -141,6 +142,7 @@ void fm_play(void) AT(FM_CODE)
             break;
 
         case MSG_FM_PREV_STATION:
+            fm_module_mute(1);
             flush_all_msg();
             if (fm_mode_var.bTotalChannel == 0)
             {
@@ -149,6 +151,7 @@ void fm_play(void) AT(FM_CODE)
             }
             fm_mode_var.bFreChannel -= 2;
         case MSG_FM_NEXT_STATION:
+            fm_module_mute(1);
             if (fm_mode_var.bTotalChannel == 0)
             {
                 fm_module_mute(0);
@@ -223,23 +226,23 @@ void fm_play(void) AT(FM_CODE)
             UI_menu(MENU_FM_DISP_FRE);
             break;
         case MSG_MUTE_UNMUTE:
-          if ( mute ){
-            mute = 0;
+          if ( key_mute ){
+            key_mute = 0;
             //deg("MSG_UNMUTE\n");
             UI_menu(MENU_UNMUTE);
-            dac_mute(mute);
+            fm_module_mute(key_mute);
           } else {
-            mute = 1;
+            key_mute = 1;
             //deg("MSG_MUTE\n");
             UI_menu(MENU_MUTE);
-            dac_mute(mute);
+            fm_module_mute(key_mute);
           }
           break;
         case MSG_STOP:
     		//for(i=0;i<100;i++)
 	    		//delay_n10ms(100);
 
-    		dac_mute(1);
+            fm_module_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
             work_mode = OFF_MODE;
             UI_menu(MENU_STOP);
@@ -267,23 +270,25 @@ void fm_mode(void) AT(FM_CODE)
 
     if (init_fm_rev())
     {
-        //P2PD  |= BIT(5);
-        //P2DIE |= BIT(5);
-        //P2DIR &=~BIT(5);
-        //P25    = 0;
+        P2PD  |= BIT(5);
+        P2DIE |= BIT(5);
+        P2DIR &=~BIT(5);
+        P25    = 0;
         //deg_puts("init_fm_rev ok\n");
         //P2HD &= ~0x7;
         //sd_chk_ctl(SET_SD_CHK_STEP, 255);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
         system_clk_div(CLK_24M);
-    	dac_mute(0);
+        fm_module_mute(0);
+        key_mute = 0;
+        set_eq(1, CLASSIC);
         fm_play();
         dac_channel_sel(DAC_DECODER);
         fm_rev_powerdown();
         //sd_chk_ctl(SET_SD_CHK_STEP, 20);
         //P2HD |= 0x7;
-        //P25    = 1;
+        P25    = 1;
     }
     else					// no fm module
     {

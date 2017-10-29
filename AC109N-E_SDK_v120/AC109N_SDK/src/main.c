@@ -99,6 +99,8 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
     }
 #endif
 
+	//GetVolSample();
+
     cnt++;
     if ((cnt % 5) == 0)             //10ms
     {

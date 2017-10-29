@@ -16,6 +16,7 @@ unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[16];
 unsigned int _xdata vol_buf[32];
 unsigned int _xdata temp_buf[4];
+unsigned char vol_index=0;
 
 BIKE_STATUS _xdata bike;
 __no_init BIKE_CONFIG _xdata config;
@@ -120,37 +121,43 @@ int GetVol(void) AT(BIKE_CODE)
 
 void GetVolSample(void)
 {
-	static unsigned char index = 0;
-	
-    vol_buf[index++] = AD_var.wADValue[AD_BIKE_VOL];
-    if ( index >= ContainOf(vol_buf) )
-      index = 0;
+    if ( vol_index >= ContainOf(vol_buf) )
+      return ;
+    
+    vol_buf[vol_index++] = AD_var.wADValue[AD_BIKE_VOL];
 }
 
 unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 {
 	unsigned long mid;
-	//static int buf[32];
+	static int buf[32];
 	static unsigned char index = 0;
 	unsigned char i;
+    
+    EA = 0;
+    if ( vol_index < ContainOf(vol_buf) ){
+      EA = 1;
+      return 0;
+    }      
 	
 	for(i=0,mid=0;i<ContainOf(vol_buf);i++)
 		mid += vol_buf[i];
 	mid /= ContainOf(vol_buf);
 
 	*vol = (mid>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
-	//*vol = (unsigned long)(AD_var.wADValue[AD_BIKE_VOL]>>6)*1033UL/1024UL;   //ADC/1024*103.3/3.3V*3.3V
 
-    //deg("GetVolStabed %u\n",AD_var.wADValue[AD_BIKE_VOL]>>6);
-
-	for(i=0,mid=0;i<32;i++)	mid += vol_buf[i];
-	mid /= 32;
+    //deg("mid %ld\n",mid);
 	for( i=0;i<32;i++){
-		if ( mid > 20 && ((mid *100 / vol_buf[i]) > 101 ||  (mid *100 / vol_buf[i]) < 99) )
+      if ( mid > (20UL<<6) && ((mid *100 / vol_buf[i]) > 101 ||  (mid *100 / vol_buf[i]) < 99) ){
 		//if ( mid > 5 && ((mid *100 / buf[i]) > 102 ||  (mid *100 / buf[i]) < 98) )
+            vol_index = 0;
+            EA = 1;
 			return 0;
+      }
 	}
 	
+    vol_index = 0;
+    EA = 1;
 	return 1;
 }
 
@@ -428,8 +435,9 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 	case TASK_STEP2:
 		if ( bike.bTurnRight == 0 && bike.bTurnLeft == 1 ) {
 			TaskFlag = TASK_EXIT;
-			bike.ulFMile 		= 0;
-			bike.ulMile 		= 0;
+    		bike.bMileFlash = 0;
+			bike.ulFMile 	= 0;
+			bike.ulMile 	= 0;
 			config.ulMile 	= 0;
 			WriteConfig();
 		}
@@ -681,6 +689,8 @@ unsigned char SpeedCaltTask(void)
 			pre_tick = Get_SysTick();
 		}
 		bike.bLastNear = bike.bNearLight;
+        bike.bLastLeft = bike.bTurnLeft;
+        bike.bLastRight = bike.bTurnRight;
 		break;
 	case TASK_STEP2:
         if ( config.uiSysVoltage == 48 )
@@ -707,6 +717,7 @@ unsigned char SpeedCaltTask(void)
 			pre_tick = Get_SysTick();
 			if ( ++count >= 5 ){
 				TaskFlag = TASK_EXIT;
+		        bike.bSpeedFlash = 0;
 				if ( bike.ucSpeed ) {
 					if ( bike.bYXTERR )
 						config.uiSpeedScale 		= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
@@ -853,16 +864,12 @@ void bike_task(void) AT(BIKE_CODE)
 		//	tick_100ms = tick;
 			count ++;
 
-            if ( (count % 10) == 0 ){
+            if ( (count % 10) == 0 )
+            {
 				if ( GetVolStabed(&vol) )
 					bike.uiVoltage = (unsigned long)vol*1000UL/config.uiVolScale;
-            	//bike.Voltage    = GetVol()+400;
 				bike.ucBatStatus 	= GetBatStatus(bike.uiVoltage);
             }
-			//if ( (count % 10) == 0 ){
-			//	bike.Temperature= (long)GetTemp()	*1000UL/config.TempScale;
-			//	bike.Temperature= GetTemp();
-			//}
 		
 			Light_Task();
 			MileTask();

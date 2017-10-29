@@ -232,6 +232,7 @@ bool set_fre(u8 mode) AT(FM_CODE)
 /*----------------------------------------------------------------------------*/
 void fm_module_mute(u8 flag) AT(FM_CODE)
 {
+    dac_mute(flag);
     (* fm_mute[fm_mode_var.bAddr])(flag);
 }
 
@@ -444,6 +445,7 @@ void fm_info_init(void) AT(FM_CODE)
     /*---------FM MAIN UI--------------*/
     SET_UI_MAIN(MENU_FM_MAIN);
     UI_menu(MENU_FM_MAIN);
+    UI_menu(MENU_UNMUTE);
 }
 
 
@@ -463,8 +465,7 @@ bool fm_scan(u8 mode) AT(FM_CODE)
         QN8035_setch(4);
 #endif
 
-    //fm_module_mute(1);
-    //dac_mute(1);
+    fm_module_mute(1);
 	if (mode == FM_SCAN_PREV)
 	    res = set_fre(FM_FRE_DEC);
 	else
@@ -475,7 +476,6 @@ bool fm_scan(u8 mode) AT(FM_CODE)
     if (res)						//找到一个台
     {
         fm_module_mute(0);
-        //dac_mute(0);
         set_memory(MEM_FRE, fm_mode_var.wFreq - MIN_FRE);
         save_fm_point(fm_mode_var.wFreq - MIN_FRE);
         fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
@@ -484,8 +484,7 @@ bool fm_scan(u8 mode) AT(FM_CODE)
 		return true;            		
     }
 	
-    //fm_module_mute(0);
-    //dac_mute(0);
+    fm_module_mute(0);
     return false;
 }
 #endif

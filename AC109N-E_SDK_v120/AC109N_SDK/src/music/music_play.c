@@ -39,6 +39,7 @@ __root const u8 EQTableCode[5][10] =
 
 _no_init MUSIC_PLAY_VAR _idata Music_Play_var;
 _no_init DEVICE_INFO _idata music_device_info[MAX_DEVICE + 1];
+_no_init bool _data key_mute;
 
 
 /*----------------------------------------------------------------------------*/
@@ -97,6 +98,7 @@ static void music_info_init(void) AT(MUSIC_PLAY)
     /*--------Music UI*/
     SET_UI_MAIN(MENU_MUSIC_MAIN);
     UI_menu(MENU_POWER_UP);
+    UI_menu(MENU_UNMUTE);
     key_table_sel(0);
 }
 
@@ -214,7 +216,6 @@ void music_app_loop(void) AT(MUSIC_PLAY)
 {
     u8 res;
     bool bres;
-    static bool mute=0;
     static u8 half_sec=0;
 
     UI_menu(MENU_MAIN);
@@ -435,6 +436,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
                 Music_Play_var.bEQ = NORMAL;
             }
             set_eq(1, Music_Play_var.bEQ);
+            //deg("play_EQ : %d\n", Music_Play_var.bEQ);
             UI_menu(MENU_EQ);
             break;
 
@@ -488,16 +490,16 @@ void music_app_loop(void) AT(MUSIC_PLAY)
             input_number = 0;
             break;
         case MSG_MUTE_UNMUTE:
-          if ( mute ){
-            mute = 0;
+          if ( key_mute ){
+            key_mute = 0;
             deg("MSG_UNMUTE\n");
             UI_menu(MENU_UNMUTE);
-            dac_mute(mute);
+            dac_mute(key_mute);
           } else {
-            mute = 1;
+            key_mute = 1;
             deg("MSG_MUTE\n");
             UI_menu(MENU_MUTE);
-            dac_mute(mute);
+            dac_mute(key_mute);
           }
           break;
         case MSG_STOP:
@@ -539,6 +541,8 @@ void music_app(void) AT(MUSIC_PLAY)
     music_info_init();
     dac_channel_sel(DAC_DECODER);
     dac_mute(0);
+    key_mute = 0;
+    playfile.play_mode = REPEAT_ALL;
     music_app_loop();
     stop_decode();
     udisk_force_idle();
