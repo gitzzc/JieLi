@@ -20,6 +20,8 @@
 #include "dac.h"
 #include "clock.h"
 #include "sdmmc_api.h"
+#include "device.h"
+#include "play_file.h"
 
 #include "bike.h"
 
@@ -38,6 +40,7 @@ extern _no_init bool _data key_mute;    //music_play.c
 void fm_play(void) AT(FM_CODE)
 {
     u8 scan_counter,i;
+    u8 res;
 
     UI_menu(MENU_FM_MAIN);
 
@@ -51,6 +54,15 @@ void fm_play(void) AT(FM_CODE)
             work_mode = MUSIC_MODE;
             return ;
         case MSG_CHANGE_WORK_MODE:
+            res = find_device(DEVICE_UDISK);
+            if ((res == DEV_INIT_ERR) || (res == NO_DEFINE_DEV)) //指定的设备不在线，或初始化失败
+            {
+                break;
+            }
+            else if ((res == NO_EFFECTIVE_DEV) || (res == NO_DEV_ONLINE)) //无可播放的设备
+            {
+                break;
+            }
             work_mode = MUSIC_MODE;
             return;
 

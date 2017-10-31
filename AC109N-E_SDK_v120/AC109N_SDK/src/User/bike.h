@@ -7,6 +7,9 @@
   * @brief
   ******************************************************************************
   * @Changlog
+  * V1.11　-　20171031
+  * 修改MP3播放暂停时拔出Ｕ盘后状态不同步的问题，暂停时不闪烁；
+  *
   * V1.10　-　20171031
   * 修改按键音的问题,RADIO&PLYAER图标始终显示
   *
@@ -78,10 +81,9 @@ typedef struct {
 	unsigned char bLastNear		:1;
 	unsigned char bBraked		:1;
 	unsigned char bCruise		:1;
-    unsigned char bLcdFresh		:1;
 	unsigned char bMileFlash	:1;	
 	unsigned char bSpeedFlash	:1;	
-    
+
 	unsigned char bECUERR		:1;
 	unsigned char bPhaseERR		:1;
 	unsigned char bHallERR		:1;
@@ -90,7 +92,7 @@ typedef struct {
 	unsigned char bHasTimer		:1;
 	unsigned char bTimeSet		:1;
 	unsigned char bUart			:1;	
-    
+
 	unsigned char bBT			:1;	
 	unsigned char bMP3			:1;	
 	unsigned char bFM			:1;	

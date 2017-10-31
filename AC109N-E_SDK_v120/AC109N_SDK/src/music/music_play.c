@@ -449,7 +449,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
             }
             UI_menu(MENU_PLAYMODE);
             break;
-            
+
 #ifdef MUSIC_POWER_EN
         case MSG_DECODER_POWER:
             music_energy = count_energy((u8 *)(0x200), 50);

@@ -225,12 +225,10 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 
 void LCD_show_volume(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
 	bike.bShowVol = 1;
 	bike.uiValue  = main_vol_L;
 	if ( bike.uiValue > 30 )
 		bike.uiValue = 30;
-	bike.bLcdFresh = 1;
 }
 /*
 void LCD_show_dev(void) AT(BIKE_CODE)
@@ -248,17 +246,16 @@ void LCD_show_dev(void) AT(BIKE_CODE)
 
 void LCD_show_music_wait(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
 	bike.uiPlayMedia = MEDIA_USB;
  	bike.bShowWait = 1;
-	bike.bLcdFresh = 1;
+	bike.bPlayFlash = 0;
+    bike.uiPlayStatus = MAD_PLAY;
 }
 
 void LCD_show_music_main(void) AT(BIKE_CODE)
 {
     u16 play_time;
 
-	bike.bLcdFresh = 0;
     /*Music Play time info*/
     bike.uiPlayTime = get_music_play_time();
 	bike.bShowVol = 0;
@@ -269,16 +266,14 @@ void LCD_show_music_main(void) AT(BIKE_CODE)
     //LCD_show_dev();
     bike.uiPlayStatus = Music_Play_var.bPlayStatus;
 	if ( bike.uiPlayStatus == MAD_PAUSE ){
-		bike.bPlayFlash = 1;
 	} else if ( bike.uiPlayStatus == MAD_PLAY ){
-		bike.bPlayFlash = 0;
 	}
-	bike.bLcdFresh = 1;
 }
 
 void LCD_show_fm_main(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
+    bike.uiPlayStatus = MAD_PLAY;
+    bike.bPlayFlash = 0;
     /*FM - Frequency*/
  	bike.bShowVol = 0;
     if( bike.uiShowFileNO ) bike.uiShowFileNO--;
@@ -286,28 +281,24 @@ void LCD_show_fm_main(void) AT(BIKE_CODE)
     bike.uiFM_Freq = fm_mode_var.wFreq;
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
     //deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
-	bike.bLcdFresh = 1;
 }
 
 void LCD_show_fm_station(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
     /*FM - Station*/
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
  	bike.bShowVol = 0;
     bike.uiShowFileNO = 2;  //2s
-	bike.bLcdFresh = 1;
 }
 
 void LCD_show_file_number(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
     /*Music File Number info*/
 	bike.uiPlayTime = 0;
 	bike.bShowVol = 0;
+ 	bike.bShowWait = 0;
     bike.uiShowFileNO = 2;  //2s
     bike.uiFileNO = playfile.given_file_number;
-	bike.bLcdFresh = 1;
 }
 
 void LCD_mute(void)  AT(BIKE_CODE)
@@ -322,9 +313,7 @@ void LCD_unmute(void)  AT(BIKE_CODE)
 
 void LCD_stop(void) AT(BIKE_CODE)
 {
-	bike.bLcdFresh = 0;
  	bike.uiPlayMedia = MEDIA_OFF;
     bike.bMute = 0;
     bike.bPlayFlash = 0;
-	bike.bLcdFresh = 1;
 }

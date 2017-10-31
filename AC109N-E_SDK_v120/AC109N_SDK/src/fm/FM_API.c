@@ -475,10 +475,12 @@ bool fm_scan(u8 mode) AT(FM_CODE)
     {
         fm_module_mute(0);
         set_memory(MEM_FRE, fm_mode_var.wFreq - MIN_FRE);
-        save_fm_point(fm_mode_var.wFreq - MIN_FRE);
-        fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
-        fm_mode_var.bTotalChannel = get_total_mem_channel();
-		UI_menu(MENU_FM_FIND_STATION);
+        if ( mode == FM_SCAN_ALL ){
+            save_fm_point(fm_mode_var.wFreq - MIN_FRE);
+            fm_mode_var.bFreChannel = get_channel_via_fre(fm_mode_var.wFreq - MIN_FRE);
+            fm_mode_var.bTotalChannel = get_total_mem_channel();
+            UI_menu(MENU_FM_FIND_STATION);
+        }
 		return true;            		
     }
 	
