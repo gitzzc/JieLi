@@ -59,7 +59,6 @@ void fm_play(void) AT(FM_CODE)
 //            break;
 
         case MSG_FM_SCAN_ALL_INIT:
-            fm_module_mute(1);
             if (scan_mode == FM_SCAN_STOP)
             {
                 set_memory(MEM_CHAN, 0);
@@ -142,7 +141,6 @@ void fm_play(void) AT(FM_CODE)
             break;
 
         case MSG_FM_PREV_STATION:
-            fm_module_mute(1);
             flush_all_msg();
             if (fm_mode_var.bTotalChannel == 0)
             {
@@ -151,7 +149,6 @@ void fm_play(void) AT(FM_CODE)
             }
             fm_mode_var.bFreChannel -= 2;
         case MSG_FM_NEXT_STATION:
-            fm_module_mute(1);
             if (fm_mode_var.bTotalChannel == 0)
             {
                 fm_module_mute(0);
@@ -230,18 +227,19 @@ void fm_play(void) AT(FM_CODE)
             key_mute = 0;
             //deg("MSG_UNMUTE\n");
             UI_menu(MENU_UNMUTE);
-            fm_module_mute(key_mute);
           } else {
             key_mute = 1;
             //deg("MSG_MUTE\n");
             UI_menu(MENU_MUTE);
-            fm_module_mute(key_mute);
           }
+          dac_mute(key_mute);
+          //fm_module_mute(key_mute);
           break;
         case MSG_STOP:
     		//for(i=0;i<100;i++)
 	    		//delay_n10ms(100);
 
+	        dac_mute(key_mute);
             fm_module_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
             work_mode = OFF_MODE;
@@ -280,6 +278,7 @@ void fm_mode(void) AT(FM_CODE)
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
         system_clk_div(CLK_24M);
+        dac_mute(0);
         fm_module_mute(0);
         key_mute = 0;
         set_eq(1, CLASSIC);

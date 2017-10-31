@@ -173,12 +173,12 @@ _near_func void set_key_tone(void) AT(COMMON_CODE)
     if (amux)     //amux
     {
         DAA_CON0 |= BIT(0);
-        KV_VLM = 31/2;                    //按键音的音量
+        KV_VLM = 31;                    //按键音的音量
         key_voice_counter = 40;         //按键音播放时间：80ms,此时间需根据按键音数据表和重复次数及按键音采样率决定
     }
     else
     {
-        KV_VLM = ((digital_vol_tab[main_vol_L]>>8) + (digital_vol_tab[main_vol_R]>>8))/8;     //按键音的音量
+        KV_VLM = ((digital_vol_tab[main_vol_L]>>8) + (digital_vol_tab[main_vol_R]>>8))/4;     //按键音的音量
     }
     KV_CNT = 0;
     KV_CNT = 20;                      //按键音重复次数
@@ -534,14 +534,13 @@ void dac_mute(bool flag) AT(DAC_CODE)
 {
     if (flag)
     {
+        mute = 1;
+        dac_fade_out();
+		set_digital_vol(0, 0);
         P2PU  |= BIT(4);
         P2DIE |= BIT(4);
         P2DIR &=~BIT(4);
         P24    = 1;
-        mute = 1;
-        dac_fade_out();
-		set_digital_vol(0, 0);
-
     }
     else
     {

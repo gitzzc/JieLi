@@ -232,7 +232,6 @@ bool set_fre(u8 mode) AT(FM_CODE)
 /*----------------------------------------------------------------------------*/
 void fm_module_mute(u8 flag) AT(FM_CODE)
 {
-    dac_mute(flag);
     (* fm_mute[fm_mode_var.bAddr])(flag);
 }
 
@@ -465,7 +464,6 @@ bool fm_scan(u8 mode) AT(FM_CODE)
         QN8035_setch(4);
 #endif
 
-    fm_module_mute(1);
 	if (mode == FM_SCAN_PREV)
 	    res = set_fre(FM_FRE_DEC);
 	else

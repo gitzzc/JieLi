@@ -98,8 +98,8 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	LCD_V();LCD_VDOT();	
 		
 	/***************************Time Area Display**********************************/
-	if ( bike->uiPlayMedia != MEDIA_OFF )
-		LCD_RP();
+	//if ( bike->uiPlayMedia != MEDIA_OFF )
+	LCD_RP();
 		
 	if ( bike->uiPlayMedia == MEDIA_USB ){
 		LCD_MP3();

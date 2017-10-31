@@ -100,12 +100,12 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 								/*08*/    NO_MSG,\
 								/*09*/    NO_MSG,
 
-const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»»±í
+const u8 adkey_msg_music_table[][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»»±í
 {
     /*¶Ì°´*/	  {ADKEY1_MUSIC_SHORT},
     /*³¤°´*/		{ADKEY1_MUSIC_LONG},
     /*Á¬°´*/		{ADKEY1_MUSIC_HOLD},
-    ///*³¤°´Ì§Æð*/	{ADKEY1_MUSIC_LONG_UP},
+    /*³¤°´Ì§Æð*/	{ADKEY1_MUSIC_LONG_UP},
 };
 
 #define ADKEY1_FM_SHORT			\
@@ -124,8 +124,8 @@ const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»
 								/*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
 								/*02*/    NO_MSG,\
-								/*03*/    MSG_FM_PREV_STEP,\
-								/*04*/    MSG_FM_NEXT_STEP,\
+								/*03*/    MSG_FM_SCAN_ALL_DOWN,\
+								/*04*/    MSG_FM_SCAN_ALL_UP,\
 								/*05*/    NO_MSG,\
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
@@ -136,8 +136,8 @@ const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»
 								/*00*/    NO_MSG,\
                                 /*01*/    NO_MSG,\
 								/*02*/    NO_MSG,\
-								/*03*/    MSG_FM_PREV_STEP,\
-								/*04*/    MSG_FM_NEXT_STEP,\
+								/*03*/    NO_MSG,\
+								/*04*/    NO_MSG,\
 								/*05*/    NO_MSG,\
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
@@ -157,12 +157,12 @@ const u8 adkey_msg_music_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»
 								/*08*/    NO_MSG,\
 								/*09*/    NO_MSG,
 
-const u8 adkey_msg_fm_table[3][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»»±í
+const u8 adkey_msg_fm_table[][10] AT (TABLE_CODE)=				//MusicÄ£Ê½ÏÂµÄÒ£¿Ø×ª»»±í
 {
     /*¶Ì°´*/	    {ADKEY1_FM_SHORT},
     /*³¤°´*/		{ADKEY1_FM_LONG},
     /*Á¬°´*/		{ADKEY1_FM_HOLD},
-    ///*³¤°´Ì§Æð*/	{ADKEY1_FM_LONG_UP},
+    /*³¤°´Ì§Æð*/	{ADKEY1_FM_LONG_UP},
 };
 
 

@@ -74,6 +74,7 @@ const u8 _code event_msg_table[] AT(TABLE_CODE)=
 _near_func void music_msg_filter(u8 key_status, u8 back_last_key) AT(KEY_CODE)
 {
     u8 msg;
+    static u8 key_voice=0;
 
     if (key_type == KEY_TYPE_IR)
     {
@@ -84,19 +85,30 @@ _near_func void music_msg_filter(u8 key_status, u8 back_last_key) AT(KEY_CODE)
         msg = adkey_msg_music_table[key_status][back_last_key];
     }
 
+    if ( msg == MSG_MUSIC_FR || msg == MSG_MUSIC_FF ){
+        if ( key_voice < 0xFF )
+            key_voice ++;
+        if ( key_voice == 1 )
+			kick_key_voice();        
+    } else {
+        key_voice = 0;
+        if ( msg != NO_MSG )
+			kick_key_voice();       
+    }
+    
     if (work_mode == MUSIC_MODE)            //与其它模式共用，但只有music模式需要此处理
-    if ((msg == MSG_MUSIC_NEXT_FILE) || (msg == MSG_MUSIC_PREV_FILE))
-    {
-        put_msg_lifo(msg);
-	#ifdef USB_VIR_KEY_EN
-        if(!have_vir_key)
-	#endif
-	{
-        user_exit_decoder();
-	}
+		if ((msg == MSG_MUSIC_NEXT_FILE) || (msg == MSG_MUSIC_PREV_FILE))
+		{
+			put_msg_lifo(msg);
+		#ifdef USB_VIR_KEY_EN
+			if(!have_vir_key)
+		#endif
+			{
+				user_exit_decoder();
+			}
         return;
     }
-
+   
     put_msg_fifo(msg);
 }
 
@@ -121,6 +133,8 @@ _near_func void fm_msg_filter(u8 key_status, u8 back_last_key) AT(KEY_CODE)
         msg = adkey_msg_fm_table[key_status][back_last_key];
     }
 
+    if ( msg != NO_MSG )
+		kick_key_voice();        
 
     if (msg == MSG_FM_SCAN_ALL_INIT)
     {
@@ -331,6 +345,11 @@ _near_func void key_scan(void) AT(COMMON_CODE)
             key_press_counter = 0;
             key_status = KEY_SHORT_UP;
         }
+        else if ((key_press_counter >= KEY_LONG_CNT) && (cur_key == NO_KEY))      //长按抬起
+        {
+            key_press_counter = 0;
+            key_status = KEY_LONG_UP;
+        }
         else
         {
             key_press_counter = 0;
@@ -341,7 +360,7 @@ _near_func void key_scan(void) AT(COMMON_CODE)
     RTC_setting_var.bStandbyCnt = 0;
 #endif
     LED_FADE_ON();
-    kick_key_voice();
+    //kick_key_voice();
     key_msg_filter(key_status, back_last_key);
 }
 
