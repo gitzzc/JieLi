@@ -165,12 +165,14 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
 #include "get_music_file.h"
 #include "hot_msg.h"
 #include "UI_common.c"
+#include "stdlib.h"
 #include "display.h"
 #include "bl55072.c"
 #include "display_8587.c"
 #include "RTC_API.h"
 
 _no_init UI_VAR _data UI_var;   /*UI 显示变量*/
+extern _no_init bool _bit mute;	//dac.c
 
 /*----------------------------------------------------------------------------*/
 /**@brief   UI 显示界面处理函数
@@ -309,10 +311,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
 #endif
 #endif
     case MENU_MUTE:
-      LCD_mute();
-      break;
-    case MENU_UNMUTE:
-      LCD_unmute();
+      LCD_mute(mute);
       break;
     case MENU_STOP:
       LCD_stop();

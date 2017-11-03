@@ -69,15 +69,16 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	switch ( bike->ucBatStatus ){
     case 0:
 		if ( flashflag < 5 )
-			BL_Data[ 8] &=~0x10;break;	//T0
-    case 1: BL_Data[ 8] |= 0x30;break;
-    case 2: BL_Data[ 8] |= 0x70;break;
-    case 3: BL_Data[ 8] |= 0xF0;break;
-    case 4: BL_Data[ 8] |= 0xF8;break;
-    case 5: BL_Data[ 8] |= 0xFC;break;
-    case 6: BL_Data[ 8] |= 0xFE;break;
-    case 7: BL_Data[ 8] |= 0xFF;break;
-    case 8: BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x10;break;
+			BL_Data[ 8] &=~0x10;break;	//T10
+    case 1: BL_Data[ 8] |= 0x10;break;	//T10
+    case 2: BL_Data[ 8] |= 0x30;break;
+    case 3: BL_Data[ 8] |= 0x70;break;
+    case 4: BL_Data[ 8] |= 0xF0;break;
+    case 5: BL_Data[ 8] |= 0xF8;break;
+    case 6: BL_Data[ 8] |= 0xFC;break;
+    case 7: BL_Data[ 8] |= 0xFE;break;
+    case 8: BL_Data[ 8] |= 0xFF;break;
+    case 9: BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x10;break;
     default:BL_Data[ 8] |= 0xFF;BL_Data[15] |= 0x30;break;
 	}
 
@@ -138,7 +139,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 				BL_Data[16] = 0x3E;	//'b'
             }
 		} else if ( bike->uiPlayMedia == MEDIA_FM ){
-			if ( bike->uiShowFileNO ){
+			if ( bike->uiShowChannel ){
 				BL_Data[12] |= 0x9A;  //'C'
 				BL_Data[11] |= 0x6E;  //'H'
 				BL_Data[17] |= SegDataTime[(bike->uiFM_Channel/10	)%10];
@@ -157,7 +158,7 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
             BL_Data[16] |= 0x8E;	//'F'
         }
     }
-	if ( bike->bPlayFlash | bike->bMute ){
+	if ( bike->bPlayFlash || bike->bMute ){
 		if ( flashflag < 5  ) {
 			BL_Data[12] &= 0x01;
 			BL_Data[11] &= 0x01;
@@ -260,6 +261,7 @@ void LCD_show_music_main(void) AT(BIKE_CODE)
     bike.uiPlayTime = get_music_play_time();
 	bike.bShowVol = 0;
  	bike.bShowWait = 0;
+    bike.uiShowChannel = 0;
     if( bike.uiShowFileNO ) bike.uiShowFileNO--;
 	bike.uiPlayMedia = MEDIA_USB;
 
@@ -274,12 +276,15 @@ void LCD_show_fm_main(void) AT(BIKE_CODE)
 {
     bike.uiPlayStatus = MAD_PLAY;
     bike.bPlayFlash = 0;
+ 	bike.bShowWait = 0;
     /*FM - Frequency*/
  	bike.bShowVol = 0;
-    if( bike.uiShowFileNO ) bike.uiShowFileNO--;
+    bike.uiShowFileNO = 0;
+    if( bike.uiShowChannel ) bike.uiShowChannel--;
  	bike.uiPlayMedia = MEDIA_FM;
     bike.uiFM_Freq = fm_mode_var.wFreq;
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
+    MenuUpdate(&bike);
     //deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
 }
 
@@ -287,8 +292,9 @@ void LCD_show_fm_station(void) AT(BIKE_CODE)
 {
     /*FM - Station*/
 	bike.uiFM_Channel = fm_mode_var.bFreChannel;
+ 	bike.bShowWait = 0;
  	bike.bShowVol = 0;
-    bike.uiShowFileNO = 2;  //2s
+    bike.uiShowChannel = 2;  //2s
 }
 
 void LCD_show_file_number(void) AT(BIKE_CODE)
@@ -301,19 +307,15 @@ void LCD_show_file_number(void) AT(BIKE_CODE)
     bike.uiFileNO = playfile.given_file_number;
 }
 
-void LCD_mute(void)  AT(BIKE_CODE)
+void LCD_mute(unsigned char mute)  AT(BIKE_CODE)
 {
-  bike.bMute = 1;
-}
-
-void LCD_unmute(void)  AT(BIKE_CODE)
-{
-  bike.bMute = 0;
+  bike.bMute = mute;
 }
 
 void LCD_stop(void) AT(BIKE_CODE)
 {
  	bike.uiPlayMedia = MEDIA_OFF;
+ 	bike.bShowWait = 0;
     bike.bMute = 0;
     bike.bPlayFlash = 0;
 }

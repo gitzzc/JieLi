@@ -26,6 +26,7 @@
 
 extern ENUM_WORK_MODE _data work_mode;
 extern u8 _data main_vol_L, main_vol_R;
+extern _no_init bool _bit mute;
 
 _no_init u16 _data input_number;	    ///<输入的数字的实际值
 
@@ -90,6 +91,7 @@ void ap_handle_hotkey(u8 key) AT(CSTART)
         if (!Sys_Volume)
             break;
         dac_mute_toggle();
+		UI_menu(MENU_MUTE);
         break;
 
     case MSG_USB_DISK_OUT:
@@ -173,10 +175,12 @@ void ap_handle_hotkey(u8 key) AT(CSTART)
 
         main_vol_R = main_vol_L;
         set_main_vol(main_vol_L, main_vol_R);
+        dac_mute(0);
         //deg("Vol-L %u/R %u\n", main_vol_L, main_vol_R);
         set_memory(MEM_VOL_L, main_vol_L);
         set_memory(MEM_VOL_R, main_vol_R);
         UI_menu(MENU_MAIN_VOL);
+		UI_menu(MENU_MUTE);
         break;
 
     case MSG_0:

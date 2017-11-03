@@ -444,7 +444,7 @@ void fm_info_init(void) AT(FM_CODE)
     /*---------FM MAIN UI--------------*/
     SET_UI_MAIN(MENU_FM_MAIN);
     UI_menu(MENU_FM_MAIN);
-    UI_menu(MENU_UNMUTE);
+    UI_menu(MENU_MUTE);
 }
 
 

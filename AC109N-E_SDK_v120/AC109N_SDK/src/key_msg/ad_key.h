@@ -61,7 +61,7 @@ const u16 ad_key_table[] AT (TABLE_CODE)=
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
 								/*08*/    MSG_CHANGE_WORK_MODE,\
-								/*09*/    MSG_MUTE_UNMUTE,
+								/*09*/    MSG_MUTE,
 
 #define ADKEY1_MUSIC_LONG		\
                                 /*00*/    NO_MSG,\
@@ -118,7 +118,7 @@ const u8 adkey_msg_music_table[][10] AT (TABLE_CODE)=				//Music模式下的遥控转换
 								/*06*/    MSG_VOL_UP,\
 								/*07*/    MSG_VOL_DOWN,\
 								/*08*/    MSG_CHANGE_WORK_MODE,\
-								/*09*/    MSG_MUTE_UNMUTE,
+								/*09*/    MSG_MUTE,
 
 #define ADKEY1_FM_LONG			\
 								/*00*/    NO_MSG,\

@@ -7,6 +7,9 @@
   * @brief
   ******************************************************************************
   * @Changlog
+  * V1.12　-　20171103
+  * 更改速度调整方式，静音的相关问题，
+  *
   * V1.11　-　20171031
   * 修改MP3播放暂停时拔出Ｕ盘后状态不同步的问题，暂停时不闪烁；
   *
@@ -114,6 +117,7 @@ typedef struct {
 	unsigned int  uiTick;
 	unsigned int  uiPlayTime;
 	unsigned int  uiShowFileNO;
+	unsigned int  uiShowChannel;
 	unsigned int  uiPlayMedia;
 	unsigned int  uiValue;
 	unsigned int  uiFileNO;

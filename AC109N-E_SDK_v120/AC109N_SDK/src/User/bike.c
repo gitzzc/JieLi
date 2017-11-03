@@ -148,7 +148,7 @@ unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 
     //deg("mid %ld\n",mid);
 	for( i=0;i<32;i++){
-      if ( mid > (20UL<<6) && ((mid *100 / vol_buf[i]) > 101 ||  (mid *100 / vol_buf[i]) < 99) ){
+      if ( mid > (20UL<<6) && ((mid *100 / vol_buf[i]) > 102 ||  (mid *100 / vol_buf[i]) < 98) ){
 		//if ( mid > 5 && ((mid *100 / buf[i]) > 102 ||  (mid *100 / buf[i]) < 98) )
             vol_index = 0;
             EA = 1;
@@ -698,34 +698,29 @@ unsigned char SpeedCaltTask(void)
         else if ( config.uiSysVoltage == 60 )
 			bike.ucSpeed = 44;
 
-		if ( bike.bLastLeft == 0 && bike.bTurnLeft == 1 ) {
-			pre_tick 	= Get_SysTick();
-			count 		= 0;
-			if ( bike.ucSpeed + SpeedInc )
-				SpeedInc --;
-		}
-        bike.bLastLeft = bike.bTurnLeft;
-
-        if ( bike.bLastRight == 0 && bike.bTurnRight == 1 ) {
-			pre_tick 	= Get_SysTick();
-			count 		= 0;
-			SpeedInc ++;
-        }
-        bike.bLastRight = bike.bTurnRight;
-        
 		if ( bike.bLastNear == 0 && bike.bNearLight == 1 ){
 			pre_tick = Get_SysTick();
-			if ( ++count >= 5 ){
-				TaskFlag = TASK_EXIT;
-		        bike.bSpeedFlash = 0;
-				if ( bike.ucSpeed ) {
-					if ( bike.bYXTERR )
-						config.uiSpeedScale 		= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
-					else
-						config.uiYXT_SpeedScale 	= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
-					WriteConfig();
+            if ( bike.bTurnLeft == 1 ) {
+				count = 0;
+				if ( bike.ucSpeed + SpeedInc > 1 )
+					SpeedInc --;
+	        } else if ( bike.bTurnRight == 1 ) {
+				count = 0;
+                if ( bike.ucSpeed + SpeedInc < 99 )
+					SpeedInc ++;
+            } else {
+				if ( ++count >= 5 ){
+					TaskFlag = TASK_EXIT;
+					bike.bSpeedFlash = 0;
+					if ( bike.ucSpeed ) {
+						if ( bike.bYXTERR )
+							config.uiSpeedScale 		= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
+						else
+							config.uiYXT_SpeedScale 	= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
+						WriteConfig();
+					}
 				}
-			}
+            }
 		}
 		bike.bLastNear = bike.bNearLight;
 
@@ -864,7 +859,7 @@ void bike_task(void) AT(BIKE_CODE)
 		//	tick_100ms = tick;
 			count ++;
 
-            if ( (count % 10) == 0 )
+            if ( (count % 5) == 0 )
             {
 				if ( GetVolStabed(&vol) )
 					bike.uiVoltage = (unsigned long)vol*1000UL/config.uiVolScale;

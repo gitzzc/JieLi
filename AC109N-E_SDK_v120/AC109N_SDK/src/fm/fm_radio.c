@@ -24,11 +24,12 @@
 #include "play_file.h"
 
 #include "bike.h"
+#include "display.h"
 
 extern ENUM_WORK_MODE _data work_mode;
 _no_init FM_MODE_VAR _data fm_mode_var;
 _no_init u8 _data scan_mode;
-extern _no_init bool _data key_mute;    //music_play.c
+extern _no_init bool _bit mute;
 
 /*----------------------------------------------------------------------------*/
 /**@brief    FM 模式主循环
@@ -88,6 +89,7 @@ void fm_play(void) AT(FM_CODE)
             }
 
         case MSG_FM_SCAN_ALL:
+            LCD_mute(0);	//屏幕不再闪烁
             flush_all_msg();
             if (fm_scan(scan_mode))
             {
@@ -183,6 +185,7 @@ void fm_play(void) AT(FM_CODE)
             set_memory(MEM_CHAN, fm_mode_var.bFreChannel);
             fm_module_mute(0);
             UI_menu(MENU_FM_CHANNEL);
+            UI_menu(MENU_MUTE);            
             break;
 
         case MSG_CH_SAVE:
@@ -234,25 +237,8 @@ void fm_play(void) AT(FM_CODE)
 			set_memory(MEM_CHAN, fm_mode_var.bFreChannel);
             UI_menu(MENU_FM_DISP_FRE);
             break;
-        case MSG_MUTE_UNMUTE:
-          if ( key_mute ){
-            key_mute = 0;
-            //deg("MSG_UNMUTE\n");
-            UI_menu(MENU_UNMUTE);
-          } else {
-            key_mute = 1;
-            //deg("MSG_MUTE\n");
-            UI_menu(MENU_MUTE);
-          }
-          dac_mute(key_mute);
-          //fm_module_mute(key_mute);
-          break;
         case MSG_STOP:
-    		//for(i=0;i<100;i++)
-	    		//delay_n10ms(100);
-
-	        dac_mute(key_mute);
-            fm_module_mute(1);
+            dac_mute(1);
             set_memory(MEM_MEDIAMODE,work_mode);
             work_mode = OFF_MODE;
             UI_menu(MENU_STOP);
@@ -287,12 +273,11 @@ void fm_mode(void) AT(FM_CODE)
         //deg_puts("init_fm_rev ok\n");
         //P2HD &= ~0x7;
         //sd_chk_ctl(SET_SD_CHK_STEP, 255);
+        dac_mute(0);
         fm_info_init();
         dac_channel_sel(DAC_AMUX1);
         system_clk_div(CLK_24M);
-        dac_mute(0);
         fm_module_mute(0);
-        key_mute = 0;
         set_eq(1, CLASSIC);
         fm_play();
         dac_channel_sel(DAC_DECODER);
