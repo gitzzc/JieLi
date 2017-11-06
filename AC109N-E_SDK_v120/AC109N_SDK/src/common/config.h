@@ -164,7 +164,7 @@ enum
 
 #define 	USB_DISK_EN      			 //是否可以读U盘
 //#define 	SDMMC_IDLE_EN                //可以使SDMMC卡进入省电模式
-#define 	UDISK_IDLE_EN                //有些(较少)U盘在此模式下，重新枚举会有问题
+//#define 	UDISK_IDLE_EN                //有些(较少)U盘在此模式下，重新枚举会有问题
 
 
 #define     USE_EEPROM_MEMORY          //使用EEPROM 作为存储器记忆

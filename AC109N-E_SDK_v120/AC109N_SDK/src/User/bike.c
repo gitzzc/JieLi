@@ -366,6 +366,7 @@ void InitConfig(void) AT(BIKE_CODE)
 	bike.bPlayFlash = 0;
     bike.uiTick = 0;
     bike.bVolFlash = 0;
+    bike.uiShowFileNO = 2;  //2s
 	
     P3PU    &=~BIT(3);
     P3PD    &=~BIT(3);
@@ -860,10 +861,14 @@ void bike_task(void) AT(BIKE_CODE)
 		}
 		break;
 	case BIKE_RESET_WAIT:
-		if ( Get_SysTick() > PON_ALLON_TIME ){
-			BL55072_Config(0);
-			task = BIKE_SETUP;
-		}
+        while( 1 ){
+			if ( Get_SysTick() > PON_ALLON_TIME ){
+				BL55072_Config(0);
+				task = BIKE_SETUP;
+			}
+            delay_n10ms(10);
+            WDT_CLEAR();
+        }
 		break;
     case BIKE_SETUP:
         task = BIKE_RUN;

@@ -42,29 +42,23 @@ void fm_play(void) AT(FM_CODE)
 {
     u8 scan_counter,i;
     u8 res;
+    static u8 check_new_device=0;
 
     UI_menu(MENU_FM_MAIN);
 
     while (1)
     {
         u8 key = app_get_msg();
-
+        
         switch (key)
         {
         case MSG_MUSIC_NEW_DEVICE_IN:
-            work_mode = MUSIC_MODE;
+            if ( !find_device(DEVICE_UDISK) )
+            	work_mode = MUSIC_MODE;
             return ;
         case MSG_CHANGE_WORK_MODE:
-            res = find_device(DEVICE_UDISK);
-            if ((res == DEV_INIT_ERR) || (res == NO_DEFINE_DEV)) //指定的设备不在线，或初始化失败
-            {
-                break;
-            }
-            else if ((res == NO_EFFECTIVE_DEV) || (res == NO_DEV_ONLINE)) //无可播放的设备
-            {
-                break;
-            }
-            work_mode = MUSIC_MODE;
+            if ( device_check() )
+	            work_mode = MUSIC_MODE;
             return;
 
 //        case MSG_STOP_SCAN:
@@ -288,7 +282,8 @@ void fm_mode(void) AT(FM_CODE)
     }
     else					// no fm module
     {
-        work_mode++;
+        //work_mode++;
+        work_mode = MUSIC_MODE;
     }
 
 #ifdef SHARE_RTC_OSC_TO_FM
