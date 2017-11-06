@@ -42,9 +42,10 @@ void fm_play(void) AT(FM_CODE)
 {
     u8 scan_counter,i;
     u8 res;
-    static u8 check_new_device=0;
+    u8 last_dev;
 
     UI_menu(MENU_FM_MAIN);
+	last_dev = get_memory(MEM_ACTIVE_DEV);
 
     while (1)
     {
@@ -53,9 +54,11 @@ void fm_play(void) AT(FM_CODE)
         switch (key)
         {
         case MSG_MUSIC_NEW_DEVICE_IN:
-            if ( !find_device(DEVICE_UDISK) )
+            if ( last_dev == NO_DEVICE ){
             	work_mode = MUSIC_MODE;
-            return ;
+            	return ;
+            }
+            break;
         case MSG_CHANGE_WORK_MODE:
             if ( device_check() )
 	            work_mode = MUSIC_MODE;

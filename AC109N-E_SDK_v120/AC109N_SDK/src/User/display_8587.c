@@ -257,6 +257,7 @@ void LCD_show_music_wait(void) AT(BIKE_CODE)
  	bike.bShowWait = 1;
 	bike.bPlayFlash = 0;
     bike.uiPlayStatus = MAD_PLAY;
+    MenuUpdate(&bike);
 }
 
 void LCD_show_music_main(void) AT(BIKE_CODE)

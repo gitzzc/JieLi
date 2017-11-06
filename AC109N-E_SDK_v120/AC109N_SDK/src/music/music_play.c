@@ -256,6 +256,7 @@ void music_app_loop(void) AT(MUSIC_PLAY)
             else if ((res == NO_EFFECTIVE_DEV) ||
                      (res == NO_DEV_ONLINE))                    //无可播放的设备
             {
+                set_memory(MEM_ACTIVE_DEV, NO_DEVICE);			//清除记忆活动设备
                 put_msg_lifo(MSG_NEXT_WORKMODE);
                 break;
             }

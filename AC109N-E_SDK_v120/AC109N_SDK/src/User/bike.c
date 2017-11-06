@@ -861,12 +861,15 @@ void bike_task(void) AT(BIKE_CODE)
 		}
 		break;
 	case BIKE_RESET_WAIT:
-        while( 1 ){
+        while( 1 )
+        {
 			if ( Get_SysTick() > PON_ALLON_TIME ){
 				BL55072_Config(0);
 				task = BIKE_SETUP;
+                break;
 			}
             delay_n10ms(10);
+            bike.uiTick += 100;
             WDT_CLEAR();
         }
 		break;
