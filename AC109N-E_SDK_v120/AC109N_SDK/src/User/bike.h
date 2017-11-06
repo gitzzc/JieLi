@@ -7,6 +7,12 @@
   * @brief
   ******************************************************************************
   * @Changlog
+  * V1.14　-　20171103
+  * 增加电压标定功能，同时清除配置信息；
+  *
+  * V1.13　-　20171103
+  * 增加单次里各参数设置功能；
+  *
   * V1.12　-　20171103
   * 更改速度调整方式，静音的相关问题，
   *
@@ -59,11 +65,11 @@
 #endif
 
 /******************************************************************************/
-#define VOL_CALIBRATIOIN	600UL	//60.0V
+#define VOL_CALIBRATIOIN	500UL	//50.0V
 #define TEMP_CALIBRATIOIN	250UL	//25.0C
 #define SPEED_CALIBRATIOIN	30UL	//30km/h
 
-#define PON_ALLON_TIME		2000UL	//2000ms
+#define PON_ALLON_TIME		1500UL	//2000ms
 
 #define DISPLAY_MAX_SPEED	99UL	//40km/h
 #define SPEEDMODE_DEFAULT	1		//1妗?
@@ -86,6 +92,7 @@ typedef struct {
 	unsigned char bCruise		:1;
 	unsigned char bMileFlash	:1;	
 	unsigned char bSpeedFlash	:1;	
+	unsigned char bVolFlash		:1;	
 
 	unsigned char bECUERR		:1;
 	unsigned char bPhaseERR		:1;
@@ -139,6 +146,7 @@ typedef struct {
 	unsigned int  uiTempScale;
 	unsigned int  uiSpeedScale;
 	unsigned int  uiYXT_SpeedScale;
+	unsigned int  uiSingleTrip;
 	unsigned long ulMile;
 	unsigned char ucSum;
 } BIKE_CONFIG,*pBIKE_CONFIG;
@@ -150,8 +158,9 @@ unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);
 void LRFlash_Task(void);
-void bike_PowerUp(void);
+void BikePowerUp(void);
 void GetVolSample(void);
+void BikeCalibration(void);
 
 /******************************************************************************/
 

@@ -96,6 +96,12 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 	BL_Data[ 6] |= SegDataVoltage[(bike->uiVoltage/10	)%10];
 	BL_Data[ 4] |= SegDataVoltage[(bike->uiVoltage	)%10] & 0xF0;
 	BL_Data[ 3] |= SegDataVoltage[(bike->uiVoltage	)%10] & 0x0F;
+    if ( bike->bVolFlash && flashflag < 5 ) {
+		BL_Data[ 7] &= 0x08;
+		BL_Data[ 6] &= 0x08;
+		BL_Data[ 4] &=~0xF0;
+		BL_Data[ 3] &=~0x07;
+    }
 	LCD_V();LCD_VDOT();	
 		
 	/***************************Time Area Display**********************************/

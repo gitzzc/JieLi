@@ -353,6 +353,7 @@ void InitConfig(void) AT(BIKE_CODE)
 		config.uiTempScale 		= 1000;
 		config.uiSpeedScale		= 1000;
 		config.uiYXT_SpeedScale	= 1000;
+        config.uiSingleTrip		= 0;
 		config.ulMile			= 0;
 	}
 
@@ -364,19 +365,18 @@ void InitConfig(void) AT(BIKE_CODE)
 	bike.bYXTERR = 1;
 	bike.bPlayFlash = 0;
     bike.uiTick = 0;
+    bike.bVolFlash = 0;
 	
-    P3PU    &=~(BIT(3)|BIT(4));
-    P3PD    &=~(BIT(3)|BIT(4));
-    P3DIE   |= (BIT(3)|BIT(4));
-    P3DIR   |= (BIT(3)|BIT(4));
+    P3PU    &=~BIT(3);
+    P3PD    &=~BIT(3);
+    P3DIE   |= BIT(3);
+    P3DIR   |= BIT(3);
 
 	if ( P33 == 0 ){
         config.uiSysVoltage = 48;
     } else {
         config.uiSysVoltage = 60;
     }
-    bike.bLFlashType = P34;
-    bike.bRFlashType = P34;
 }
 
 unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
@@ -434,12 +434,39 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 		break;
 	case TASK_STEP2:
 		if ( bike.bTurnRight == 0 && bike.bTurnLeft == 1 ) {
+			count = 0;
 			TaskFlag = TASK_EXIT;
-    		bike.bMileFlash = 0;
+			bike.bMileFlash = 0;
 			bike.ulFMile 	= 0;
 			bike.ulMile 	= 0;
 			config.ulMile 	= 0;
 			WriteConfig();
+		} else if ( bike.bTurnRight == 0 && bike.bTurnLeft == 0 ) {
+			if ( bike.bLastNear == 0 && bike.bNearLight ){
+				pre_tick = Get_SysTick();
+				if ( ++count >= 4 ){
+					TaskFlag = TASK_STEP3;
+					if ( config.uiSingleTrip ){
+						config.uiSingleTrip = 0;
+						bike.ulMile = 99999UL;
+					} else {
+						config.uiSingleTrip = 1;
+						bike.ulMile = 0;
+					}
+					WriteConfig();
+				}
+			}
+		}
+		bike.bLastNear = bike.bNearLight;
+		break;
+	case TASK_STEP3:
+		if ( Get_ElapseTick(pre_tick) > 3000 ){
+			TaskFlag = TASK_EXIT;
+			if ( config.uiSingleTrip )
+				bike.ulMile = 0;
+			else
+				bike.ulMile = config.ulMile;
+			bike.bMileFlash = 0;
 		}
 		break;
 	case TASK_EXIT:
@@ -455,13 +482,18 @@ void MileTask(void) AT(BIKE_CODE)
 	static unsigned int time = 0;
 	unsigned char speed;
 	
+	if ( MileResetTask() )
+		return ;
+
 	speed = bike.ucSpeed;
 	if ( speed > DISPLAY_MAX_SPEED )
 		speed = DISPLAY_MAX_SPEED;
 	
-#ifdef SINGLE_TRIP
+//#ifdef SINGLE_TRIP
 	time ++;
 	if ( time < 20 ) {	//2s
+		if ( config.uiSingleTrip == 0 )
+			time = 51;
 		bike.ulMile = config.ulMile;
 	} else if ( time < 50 ) { 	//5s
 		if ( speed ) {
@@ -471,7 +503,7 @@ void MileTask(void) AT(BIKE_CODE)
 	} else if ( time == 50 ){
 		bike.ulMile = 0;
 	} else
-#endif	
+//#endif	
 	{
 		time = 51;
 		
@@ -742,58 +774,42 @@ unsigned char SpeedCaltTask(void)
 	return 0;
 }
 
-#if 0
-void Calibration(void) AT(BIKE_CODE)
+void BikeCalibration(void) AT(BIKE_CODE)
 {
 	unsigned char i;
 	unsigned int vol;
 	
-	CFG->GCR = CFG_GCR_SWD;
-	//¶Ì½ÓµÍËÙ¡¢SWIMÐÅºÅ
-	GPIO_Init(GPIOD, GPIO_PIN_1, GPIO_MODE_OUT_OD_HIZ_SLOW);
-
-	for(i=0;i<32;i++){
-		GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE1_PORT	, SPMODE1_PIN) ) break;
-		GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE1_PORT	, SPMODE1_PIN)  == RESET ) break;
-	}
-	if ( i == 32 ){
-		for(i=0;i<0xFF;i++){
-			if ( GetVolStabed(&vol) && (vol > 120) ) break;
-			//IWDG_ReloadCounter();
+    if(  AD_var.wADValue[AD_CH_KEY] < (100UL<<6) && P36 == 1 && P37 == 1 ){
+		for(i=0;i<32;i++){
+			if(  AD_var.wADValue[AD_CH_KEY] > (100UL<<6) || P36 == 0 || P37 == 0 )
+                break;
+			delay_n10ms(2);
+            WDT_CLEAR();
 		}
-		bike.Voltage		= vol;
-		//bike.Temperature	= GetTemp();
-		//bike.ucSpeed		= GetSpeed();
-
-		config.VolScale		= (unsigned long)bike.Voltage*1000UL/VOL_CALIBRATIOIN;					//60.00V
-		//config.TempScale	= (long)bike.Temperature*1000UL/TEMP_CALIBRATIOIN;	//25.0C
-		//config.SpeedScale = (unsigned long)bike.ucSpeed*1000UL/SPEED_CALIBRATIOIN;				//30km/h
-		//config.ulMile = 0;
-		WriteConfig();
-	}
-	
-	for(i=0;i<32;i++){
-		GPIO_WriteLow (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE2_PORT	, SPMODE2_PIN) ) break;
-		GPIO_WriteHigh (GPIOD,GPIO_PIN_1);
-		Delay(1000);
-		if( GPIO_Read(SPMODE2_PORT	, SPMODE2_PIN)  == RESET ) break;
-	}
-	if ( i == 32 ){
-		bike.uart = 1;
-	} else
-		bike.uart = 0;
-
-	CFG->GCR &= ~CFG_GCR_SWD;
+		if ( i == 32 ){
+			for(i=0;i<0xFF;i++){
+	            delay_n10ms(10);
+                if ( GetVolStabed(&vol) /*&& (400 < vol) && (vol < 600)*/ ){
+					bike.uiVoltage			= vol;
+		//			config.uiVolScale		= 1000;
+					config.uiVolScale		= (unsigned long)vol*1000UL/VOL_CALIBRATIOIN;
+					config.uiSysVoltage 	= 60;
+					config.uiTempScale 		= 1000;
+					config.uiSpeedScale		= 1000;
+					config.uiYXT_SpeedScale	= 1000;
+                    config.uiSingleTrip		= 0;
+					config.ulMile			= 0;
+					WriteConfig();
+                    bike.bVolFlash 			= 1;
+                    break;
+                }
+                WDT_CLEAR();
+			}
+		}
+    }
 }
-#endif
 
-void bike_PowerUp(void)
+void BikePowerUp(void)
 {
 	HotReset();
 	if ( bike.bHotReset == 0 ){
@@ -826,7 +842,7 @@ void bike_task(void) AT(BIKE_CODE)
 	//	for(i=0;i<4;i++) {	GetTemp();	/*IWDG_ReloadCounter(); */ }
 
 		InitConfig();
-		//Calibration();
+		BikeCalibration();
 
 	#if ( TIME_ENABLE == 1 )	
 		//bike.HasTimer = !PCF8563_Check();
@@ -861,9 +877,10 @@ void bike_task(void) AT(BIKE_CODE)
 
             if ( (count % 5) == 0 )
             {
-				if ( GetVolStabed(&vol) )
-					bike.uiVoltage = (unsigned long)vol*1000UL/config.uiVolScale;
-				bike.ucBatStatus 	= GetBatStatus(bike.uiVoltage);
+                if ( GetVolStabed(&vol) ){
+					bike.uiVoltage 	= (unsigned long)vol*1000UL/config.uiVolScale;
+					bike.ucBatStatus= GetBatStatus(bike.uiVoltage);
+                }
             }
 		
 			Light_Task();
@@ -873,10 +890,6 @@ void bike_task(void) AT(BIKE_CODE)
 		#if ( TIME_ENABLE == 1 )	
 			TimeTask();
 		#endif
-
-		#ifdef RESET_MILE_ENABLE	
-			MileResetTask();
-		#endif	
 
             SpeedCaltTask();
 

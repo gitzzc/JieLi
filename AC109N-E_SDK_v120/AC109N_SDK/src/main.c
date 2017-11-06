@@ -267,7 +267,7 @@ static void sys_init(void) AT(CSTART)
     /*SD I/O & Controller init*/
     //set_sd_clk = 1;
     //sdmmc_init();
-
+    
     /*ADKey init*/
     AD_init();
 
@@ -282,7 +282,7 @@ static void sys_init(void) AT(CSTART)
 
     /*PLL初始化，会关总中断*/
 	pll_init();
-	bike_PowerUp();
+	BikePowerUp();
 	//uart_setup();
     /*EEPROM verify*/
 	eeprom_verify();
