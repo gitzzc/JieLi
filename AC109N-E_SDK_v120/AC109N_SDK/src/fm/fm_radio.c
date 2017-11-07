@@ -22,6 +22,7 @@
 #include "sdmmc_api.h"
 #include "device.h"
 #include "play_file.h"
+#include "get_music_file.h"
 
 #include "bike.h"
 #include "display.h"
@@ -45,7 +46,6 @@ void fm_play(void) AT(FM_CODE)
     u8 last_dev;
 
     UI_menu(MENU_FM_MAIN);
-	last_dev = get_memory(MEM_ACTIVE_DEV);
 
     while (1)
     {
@@ -54,6 +54,7 @@ void fm_play(void) AT(FM_CODE)
         switch (key)
         {
         case MSG_MUSIC_NEW_DEVICE_IN:
+			last_dev = get_memory(MEM_ACTIVE_DEV);
             if ( last_dev == NO_DEVICE ){
             	work_mode = MUSIC_MODE;
             	return ;

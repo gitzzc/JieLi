@@ -112,6 +112,7 @@ void ap_handle_hotkey(u8 key) AT(CSTART)
             save_music_break_point(device_active);
 #endif
         }
+        set_memory(MEM_ACTIVE_DEV,NO_DEVICE);
         break;
 
 #ifdef USB_DEVICE_EN
