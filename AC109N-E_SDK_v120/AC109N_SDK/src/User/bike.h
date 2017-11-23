@@ -88,8 +88,6 @@ typedef struct {
     unsigned char bRightFlash	:1;	
     unsigned char bTurnLeft		:1;
     unsigned char bTurnRight	:1;
-    unsigned char bLastLeft		:1;
-    unsigned char bLastRight	:1;
 
 	unsigned char bHotReset		:1;	
 	unsigned char bNearLight	:1;

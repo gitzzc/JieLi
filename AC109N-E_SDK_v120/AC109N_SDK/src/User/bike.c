@@ -18,33 +18,131 @@ unsigned int _xdata vol_buf[32];
 unsigned int _xdata temp_buf[4];
 unsigned char vol_index=0;
 
-BIKE_STATUS _xdata bike;
+BIKE_STATUS _xdata sBike;
 __no_init BIKE_CONFIG _xdata config;
 
 
 unsigned int Get_SysTick(void) AT(BIKE_CODE)
 {
-	unsigned int tick;
+	uint16_t uiTick;
 	
 	EA = 0;
-	tick = bike.uiTick;
+	uiTick = sBike.uiTick;
 	EA = 1;
 	
-	return tick;
+	return uiTick;
 }
 
 unsigned int Get_ElapseTick(unsigned int pre_tick) AT(BIKE_CODE)
 {
-	unsigned int tick = Get_SysTick();
+	uint16_t uiTick = Get_SysTick();
 
-	if ( tick >= pre_tick )	
-		return (tick - pre_tick);
+	if ( uiTick >= uiPreTick )	
+		return (uiTick - uiPreTick); 
 	else
-		return (0xFFFF - pre_tick + tick);
+		return (0xFFFF - uiPreTick + uiTick);
+}
+
+
+void HotReset(void) AT(BIKE_CODE)
+{
+	if (sConfig.ucBike[0] == 'b' &&
+		sConfig.ucBike[1] == 'i' &&
+		sConfig.ucBike[2] == 'k' &&
+		sConfig.ucBike[3] == 'e' ){
+		sBike.bHotReset = 1;
+	} else {
+		sBike.bHotReset = 0;
+	}
+}
+
+void WriteConfig(void) AT(BIKE_CODE)
+{
+	uint8_t *cbuf = (uint8_t *)&sConfig;
+	uint8_t i;
+
+	sConfig.ucBike[0] = 'b';
+	sConfig.ucBike[1] = 'i';
+	sConfig.ucBike[2] = 'k';
+	sConfig.ucBike[3] = 'e';
+	for(sConfig.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
+		sConfig.ucSum += cbuf[i];
+		
+	for(i=0;i<sizeof(BIKE_CONFIG);i++)
+		set_memory(BIKE_EEPROM_START+i,cbuf[i]);
+}
+
+void InitConfig(void) AT(BIKE_CODE)
+{
+	uint8_t *cbuf = (uint8_t *)&sConfig;
+	uint8_t i,sum;
+
+	for(i=0;i<sizeof(BIKE_CONFIG);i++)
+		cbuf[i] = get_memory(BIKE_EEPROM_START + i);
+
+	for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
+		sum += cbuf[i];
+		
+	if (sConfig.ucBike[0] != 'b' ||
+		sConfig.ucBike[1] != 'i' ||
+		sConfig.ucBike[2] != 'k' ||
+		sConfig.ucBike[3] != 'e' ||
+		sum != sConfig.ucSum ){
+		sConfig.uiSysVoltage 	= 60;
+		sConfig.uiVolScale  		= 1000;
+		sConfig.uiTempScale 		= 1000;
+		sConfig.uiSpeedScale		= 1000;
+		sConfig.uiYXT_SpeedScale	= 1000;
+#ifdef SINGLE_TRIP
+		sConfig.uiSingleTrip	= 1;
+#else
+        sConfig.uiSingleTrip		= 0;
+#endif
+		sConfig.ulMile			= 0;
+	}
+
+	sBike.ulMile = sConfig.ulMile;
+#if ( TIME_ENABLE == 1 )
+	sBike.bHasTimer = 0;
+#endif
+	sBike.ulFMile = 0;
+	sBike.ucSpeedMode = 0;
+	sBike.bYXTERR = 1;
+	sBike.bPlayFlash = 0;
+    sBike.uiTick = 0;
+    sBike.bVolFlash = 0;
+    sBike.uiShowFileNO = 2;  //2s
+	
+    P3PU    &=~BIT(3);
+    P3PD    &=~BIT(3);
+    P3DIE   |= BIT(3);
+    P3DIR   |= BIT(3);
+
+	if ( P33 == 0 ){
+        sConfig.uiSysVoltage = 48;
+    } else {
+        sConfig.uiSysVoltage = 60;
+    }
+}
+
+unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
+{
+	uint8_t i;
+	int16_t const _code * BatStatus;
+
+	switch ( sConfig.uiSysVoltage ){
+	case 48:BatStatus = BatStatus48;break;
+	case 60:BatStatus = BatStatus60;break;
+	default:BatStatus = BatStatus60;break;
+	}
+
+	for(i=0;i<ContainOf(uiBatStatus60);i++)
+		if ( uiVol < uiBatStatus[i] ) break;
+	return i;
 }
 
 #if 0
-const long NTC_B3450[29][2] =
+const int32_t NTC_B3450[29][2] = 
 {
 	251783,	-400,	184546,	-350,	137003,	-300,	102936,	-250,	78219,	-200,
 	60072,	-150,	46601,	-100,	36495,	-50,	28837,	0,		22980,	50,
@@ -56,7 +154,7 @@ const long NTC_B3450[29][2] =
 
 long NTCtoTemp(long ntc) AT(BIKE_CODE)
 {
-	unsigned char i,j;
+	uint8_t i,j;
 
 	if ( ntc > NTC_B3450[0][0] ){
 		return NTC_B3450[0][1];
@@ -180,7 +278,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
     vol = (unsigned long)vol*1033/1024;
     //deg("vol %u\n",vol);
 	
-	if ( config.uiSysVoltage	== 48 ){	
+	if ( sConfig.uiSysVoltage	== 48 ){	
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
       } else if ( vol < 240 ){
@@ -188,7 +286,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
       } else/* if ( vol < 270 )*/{
 		speed = (unsigned long)vol*18364UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/27V*48 KM/H
       }
-	} else if ( config.uiSysVoltage	== 60 ) {
+	} else if ( sConfig.uiSysVoltage	== 60 ) {
       if ( vol < 260 ){
 		speed = (unsigned long)vol*15098UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/26V*38 KM/H
       } else if ( vol < 300 ){
@@ -206,194 +304,67 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 #define READ_TURN_LEFT()		(P32)
 #define READ_TURN_RIGHT()		(P31)
 
-void LRFlash_Task(void)
+void LRFlashTask(void)
 {
-	static unsigned char left_on=0	,left_off=0;
-	static unsigned char right_on=0	,right_off=0;
-	static unsigned char left_count=0,right_count=0;
+	static uint8_t ucLeftOn=0	,ucLeftOff=0;
+	static uint8_t ucRightOn=0	,ucRightOff=0;
+	static uint8_t ucLeftCount=0,ucRightCount=0;
 
 	if ( READ_TURN_LEFT() ){	//ON
-        left_off = 0;
-        if ( left_on ++ > 10 ){		//200ms 滤波
-            if ( left_on > 100 ){
-          	    left_on = 101;
-                bike.bLFlashType = 0;
+        ucLeftOff = 0;
+        if ( ucLeftOn ++ > 10 ){		//200ms 滤波
+            if ( ucLeftOn > 100 ){
+          	    ucLeftOn = 101;
+                sBike.bLFlashType = 0;
             }
-           	if ( left_count < 0xFF-50 ){
-	            left_count++;
+           	if ( ucLeftCount < 0xFF-50 ){
+	            ucLeftCount++;
             }
-			bike.bLeftFlash	= 1;
-			bike.bTurnLeft 	= 1;
+			sBike.bLeftFlash= 1;
+			sBike.bTurnLeft 	= 1;
         }
 	} else {					//OFF
-        left_on = 0;
-        if ( left_off ++ == 10 ){
-        	left_count += 50;	//500ms
-			bike.bLeftFlash	= 0;
-        } else if ( left_off > 10 ){
-	        left_off = 11;
-            bike.bLFlashType = 1;
-            if ( left_count == 0 ){
-				bike.bTurnLeft = 0;
+        ucLeftOn = 0;
+        if ( ucLeftOff ++ == 10 ){
+        	ucLeftCount += 50;	//500ms
+			sBike.bLeftFlash	= 0;
+        } else if ( ucLeftOff > 10 ){
+	        ucLeftOff = 11;
+            sBike.bLFlashType = 1;
+            if ( ucLeftCount == 0 ){
+				sBike.bTurnLeft = 0;
             } else
-				left_count --;
+				ucLeftCount --;
 		}
 	}
 	
 	if ( READ_TURN_RIGHT() ){	//ON
-        right_off = 0;
-        if ( right_on ++ > 10 ){
-            if ( right_on > 100 ){
-          	    right_on = 101;
-                bike.bRFlashType = 0;
+        ucRightOff = 0;
+        if ( ucRightOn ++ > 10 ){
+            if ( ucRightOn > 100 ){
+          	    ucRightOn = 101;
+                sBike.bRFlashType = 0;
             }
-           	if ( right_count < 0xFF-50 ){
-				right_count++;
+           	if ( ucRightCount < 0xFF-50 ){
+				ucRightCount++;
             }
-			bike.bRightFlash	= 1;
-			bike.bTurnRight 	= 1;
+			sBike.bRightFlash= 1;
+			sBike.bTurnRight 	= 1;
         }
 	} else {					//OFF
-        right_on = 0;
-        if ( right_off ++ == 10 ){
-        	right_count += 50;	//500ms
-			bike.bRightFlash = 0;
-        } else if ( right_off > 10 ){
-	        right_off = 11;
-            bike.bRFlashType = 1;
-            if ( right_count == 0 ){
-				bike.bTurnRight = 0;
+        ucRightOn = 0;
+        if ( ucRightOff ++ == 10 ){
+        	ucRightCount += 50;	//500ms
+			sBike.bRightFlash = 0;
+        } else if ( ucRightOff > 10 ){
+	        ucRightOff = 11;
+            sBike.bRFlashType = 1;
+            if ( ucRightCount == 0 ){
+				sBike.bTurnRight = 0;
             } else
-				right_count --;
+				ucRightCount --;
 		}
 	}
-}
-
-void Light_Task(void) AT(BIKE_CODE)
-{
-	unsigned char speed_mode=0;
-	
-	//if ( bike.YXTERR )
-    {
-		P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
-		P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
-		P3DIE 	|= (BIT(2)|BIT(1)|BIT(0));
-		P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
-	
-		if( P30 ) {
-		  bike.bNearLight = 1;
-		  P2PU  |= BIT(0);  //背光调节
-		  P2HD  |= BIT(0);
-		  P2DIE |= BIT(0);
-		  P2DIR &=~BIT(0);
-		  P20    = 0;
-		} else {
-		  bike.bNearLight = 0;
-		  P2PU  |= BIT(0);  //背光调节
-		  P2HD  |= BIT(0);
-		  P2DIE |= BIT(0);
-		  P2DIR &=~BIT(0);
-		  P20    = 1;
-		}
-		//if( P31 ) bike.bTurnRight = 1; else bike.bTurnRight = 0;
-		//if( P32 ) bike.bTurnLeft  = 1; else bike.bTurnLeft  = 0;
-
-		bike.ucPHA_Speed 	= (unsigned long)GetSpeed();
-		bike.ucSpeed 		= (unsigned long)bike.ucPHA_Speed*1000UL/config.uiSpeedScale;
-    	//deg("ucPHA_Speed=%u,SpeedScale=%u,Speed=%u\n",bike.ucPHA_Speed,config.SpeedScale,bike.ucSpeed);
-    }	
-}
-
-void HotReset(void) AT(BIKE_CODE)
-{
-	if (config.ucBike[0] == 'b' &&
-		config.ucBike[1] == 'i' &&
-		config.ucBike[2] == 'k' &&
-		config.ucBike[3] == 'e' ){
-		bike.bHotReset = 1;
-	} else {
-		bike.bHotReset = 0;
-	}
-}
-
-void WriteConfig(void) AT(BIKE_CODE)
-{
-	unsigned char *cbuf = (unsigned char *)&config;
-	unsigned char i;
-
-	config.ucBike[0] = 'b';
-	config.ucBike[1] = 'i';
-	config.ucBike[2] = 'k';
-	config.ucBike[3] = 'e';
-	for(config.ucSum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
-		config.ucSum += cbuf[i];
-		
-	for(i=0;i<sizeof(BIKE_CONFIG);i++)
-		set_memory(BIKE_EEPROM_START+i,cbuf[i]);
-}
-
-void InitConfig(void) AT(BIKE_CODE)
-{
-	unsigned char *cbuf = (unsigned char *)&config;
-	unsigned char i,sum;
-
-	for(i=0;i<sizeof(BIKE_CONFIG);i++)
-		cbuf[i] = get_memory(BIKE_EEPROM_START + i);
-
-	for(sum=0,i=0;i<sizeof(BIKE_CONFIG)-1;i++)
-		sum += cbuf[i];
-		
-	if (config.ucBike[0] != 'b' ||
-		config.ucBike[1] != 'i' ||
-		config.ucBike[2] != 'k' ||
-		config.ucBike[3] != 'e' ||
-		sum != config.ucSum ){
-		config.uiSysVoltage 	= 60;
-		config.uiVolScale  		= 1000;
-		config.uiTempScale 		= 1000;
-		config.uiSpeedScale		= 1000;
-		config.uiYXT_SpeedScale	= 1000;
-        config.uiSingleTrip		= 0;
-		config.ulMile			= 0;
-	}
-
-	bike.ulMile = config.ulMile;
-#if ( TIME_ENABLE == 1 )
-	bike.bHasTimer = 0;
-#endif
-	//bike.SpeedMode = SPEEDMODE_DEFAULT;
-	bike.bYXTERR = 1;
-	bike.bPlayFlash = 0;
-    bike.uiTick = 0;
-    bike.bVolFlash = 0;
-    bike.uiShowFileNO = 2;  //2s
-	
-    P3PU    &=~BIT(3);
-    P3PD    &=~BIT(3);
-    P3DIE   |= BIT(3);
-    P3DIR   |= BIT(3);
-
-	if ( P33 == 0 ){
-        config.uiSysVoltage = 48;
-    } else {
-        config.uiSysVoltage = 60;
-    }
-}
-
-unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
-{
-	unsigned char i;
-	unsigned int const _code * BatStatus;
-
-	switch ( config.uiSysVoltage ){
-	case 48:BatStatus = BatStatus48;break;
-	case 60:BatStatus = BatStatus60;break;
-	default:BatStatus = BatStatus60;break;
-	}
-
-	for(i=0;i<ContainOf(BatStatus60);i++)
-		if ( vol < BatStatus[i] ) break;
-	return i;
 }
 
 #define TASK_INIT	0
@@ -405,375 +376,381 @@ unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
 
 unsigned char MileResetTask(void) AT(BIKE_CODE)
 {
-	static unsigned int pre_tick=0;
-	static unsigned char TaskFlag = TASK_INIT;
-	static unsigned char count = 0;
+	static uint16_t uiPreTick=0;
+	static uint8_t TaskFlag = TASK_INIT;
+	static uint8_t ucCount = 0;
+	uint8_t ret = 1;
 	
     if ( TaskFlag == TASK_EXIT )
         return 0;
     
-	if ( Get_ElapseTick(pre_tick) > 10000 | bike.bBraked | bike.ucSpeed )
+	if ( Get_ElapseTick(uiPreTick) > 10000 | sBike.bBraked | sBike.ucSpeed )
 		TaskFlag = TASK_EXIT;
 
 	switch( TaskFlag ){
 	case TASK_INIT:
-		if ( Get_SysTick() < 3000 && bike.bTurnRight == 1 ){
+		if ( Get_SysTick() < 3000 && sBike.bTurnRight == 1 ){
 			TaskFlag = TASK_STEP1;
-			count = 0;
+			ucCount = 0;
 		}
 		break;
 	case TASK_STEP1:
-		if ( bike.bLastNear == 0 && bike.bNearLight){
-			pre_tick = Get_SysTick();
-			if ( ++count >= 8 ){
+		if ( sBike.bLastNear == 0 && sBike.bNearLight ){
+			uiPreTick = Get_SysTick();
+			if ( ++ucCount >= 8 ){
 				TaskFlag = TASK_STEP2;
-				bike.bMileFlash = 1;
-				bike.ulMile = config.ulMile;
+				ucCount = 0;
+				sBike.bMileFlash = 1;
+				sBike.ulMile = sConfig.ulMile;
 			}
 		}
-		bike.bLastNear = bike.bNearLight;
+		sBike.bLastNear = sBike.bNearLight;
 		break;
 	case TASK_STEP2:
-		if ( bike.bTurnRight == 0 && bike.bTurnLeft == 1 ) {
-			count = 0;
+		if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 1 ) {
+			ucCount = 0;
 			TaskFlag = TASK_EXIT;
-			bike.bMileFlash = 0;
-			bike.ulFMile 	= 0;
-			bike.ulMile 	= 0;
-			config.ulMile 	= 0;
+			sBike.bMileFlash = 0;
+			sBike.ulFMile 	= 0;
+			sBike.ulMile 	= 0;
+			sConfig.ulMile 	= 0;
 			WriteConfig();
-		} else if ( bike.bTurnRight == 0 && bike.bTurnLeft == 0 ) {
-			if ( bike.bLastNear == 0 && bike.bNearLight ){
-				pre_tick = Get_SysTick();
-				if ( ++count >= 4 ){
+		} else if ( sBike.bTurnRight == 0 && sBike.bTurnLeft == 0 ) {
+			if ( sBike.bLastNear == 0 && sBike.bNearLight){
+				uiPreTick = Get_SysTick();
+				if ( ++ucCount >= 4 ){
 					TaskFlag = TASK_STEP3;
-					if ( config.uiSingleTrip ){
-						config.uiSingleTrip = 0;
-						bike.ulMile = 99999UL;
+					if ( sConfig.uiSingleTrip ){
+						sConfig.uiSingleTrip = 0;
+						sBike.ulMile = 99999UL;
 					} else {
-						config.uiSingleTrip = 1;
-						bike.ulMile = 0;
+						sConfig.uiSingleTrip = 1;
+						sBike.ulMile = 0;
 					}
 					WriteConfig();
 				}
 			}
 		}
-		bike.bLastNear = bike.bNearLight;
+		sBike.bLastNear = sBike.bNearLight;
 		break;
 	case TASK_STEP3:
-		if ( Get_ElapseTick(pre_tick) > 3000 ){
+		if ( Get_ElapseTick(uiPreTick) > 3000 ) {
 			TaskFlag = TASK_EXIT;
-			if ( config.uiSingleTrip )
-				bike.ulMile = 0;
+			if ( sConfig.uiSingleTrip )
+				sBike.ulMile = 0;
 			else
-				bike.ulMile = config.ulMile;
-			bike.bMileFlash = 0;
+				sBike.ulMile = sConfig.ulMile;
+			sBike.bMileFlash = 0;
 		}
 		break;
 	case TASK_EXIT:
 	default:
-		bike.bMileFlash = 0;
+		sBike.bMileFlash = 0;
+		ret = 0;
 		break;
 	}
-	return 0;
+	return ret;
 }
 
 void MileTask(void) AT(BIKE_CODE)
 {
-	static unsigned int time = 0;
-	unsigned char speed;
+	static uint16_t uiTime = 0;
+	uint8_t uiSpeed;
 	
 	if ( MileResetTask() )
 		return ;
 
-	speed = bike.ucSpeed;
-	if ( speed > DISPLAY_MAX_SPEED )
-		speed = DISPLAY_MAX_SPEED;
+	uiSpeed = sBike.ucSpeed;
+	if ( uiSpeed > DISPLAY_MAX_SPEED )
+		uiSpeed = DISPLAY_MAX_SPEED;
 	
 //#ifdef SINGLE_TRIP
-	time ++;
-	if ( time < 20 ) {	//2s
-		if ( config.uiSingleTrip == 0 )
-			time = 51;
-		bike.ulMile = config.ulMile;
-	} else if ( time < 50 ) { 	//5s
-		if ( speed ) {
-			time = 50;
-			bike.ulMile = 0;
+	uiTime ++;
+	if ( uiTime < 20 ) {	//2s
+		if ( sConfig.uiSingleTrip == 0 )
+			uiTime = 51;
+		sBike.ulMile = sConfig.ulMile;
+	} else if ( uiTime < 50 ) { 	//5s
+		if ( uiSpeed ) {
+			uiTime = 50;
+			sBike.ulMile = 0;
 		}
-	} else if ( time == 50 ){
-		bike.ulMile = 0;
+	} else if ( uiTime == 50 ){
+		sBike.ulMile = 0;
 	} else
 //#endif	
 	{
-		time = 51;
+		uiTime = 51;
 		
-		bike.ulFMile = bike.ulFMile + speed;
-		if(bike.ulFMile >= 36000)
+		sBike.ulFMile = sBike.ulFMile + uiSpeed;
+		if(sBike.ulFMile >= 36000)
 		{
-			bike.ulFMile = 0;
-			bike.ulMile++;
-			if ( bike.ulMile > 99999 )	bike.ulMile = 0;
-			config.ulMile ++;
-			if ( config.ulMile > 99999 )config.ulMile = 0;
+			sBike.ulFMile = 0;
+			sBike.ulMile++;
+			if ( sBike.ulMile > 99999 )	sBike.ulMile = 0;
+			sConfig.ulMile ++;
+			if ( sConfig.ulMile > 99999 )	sConfig.ulMile = 0;
 			WriteConfig();
 		}
 	}
 }
 
-#if ( TIME_ENABLE == 1 )
-void TimeTask(void) AT(BIKE_CODE)
+uint8_t SpeedCaltTask(void)
 {
-	static unsigned char time_task=0,left_on= 0,NL_on = 0;
-	static unsigned int pre_tick;
-	
-	if (!bike.bHasTimer)
-		return ;
-	
-	if (bike.ucSpeed > 1)
-		time_task = 0xff;
-	
-	switch ( time_task ){
-	case 0:
-		if ( Get_SysTick() < 5000 && bike.bNearLight == 0 && bike.bTurnLeft == 1 ){
-			pre_tick = Get_SysTick();
-			time_task++;
-		}
-		break;
-	case 1:
-		if ( bike.bTurnLeft == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 2:
-		if ( bike.bTurnRight == 1 ){
-			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000  || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 3:
-		if ( bike.bTurnRight == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 4:
-		if ( bike.bTurnLeft == 1 ){
-			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000  || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 5:
-		if ( bike.bTurnLeft == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 6:
-		if ( bike.bTurnRight == 1 ){
-			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000  || bike.bNearLight ) time_task = 0xFF;
-		}
-	case 7:
-		if ( bike.bTurnRight == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 8:
-		if ( bike.bTurnLeft == 1 ){
-			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000  || bike.bNearLight ) time_task = 0xFF;
-		}
-	case 9:
-		if ( bike.bTurnLeft == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 10:
-		if ( bike.bTurnRight == 1 ){
-			if ( Get_ElapseTick(pre_tick) > 1000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000  || bike.bNearLight ) time_task = 0xFF;
-		}
-	case 11:
-		if ( bike.bTurnRight == 0 ){
-			if ( Get_ElapseTick(pre_tick) < 2000  ) time_task = 0xFF;	else { pre_tick = Get_SysTick(); time_task++; }
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 10000 || bike.bNearLight ) time_task = 0xFF;
-		}
-		break;
-	case 12:
-		if ( bike.bTurnLeft == 1 || bike.bNearLight ){
-			 time_task = 0xFF;
-		} else {
-			if ( Get_ElapseTick(pre_tick) > 1000 ) {
-				time_task= 0;
-				bike.ucTimePos = 0;
-				bike.bTimeSet = 1;
-				pre_tick = Get_SysTick();
-			}
-		}
-		break;
-	default:
-		bike.ucTimePos = 0;
-		bike.bTimeSet = 0;
-		time_task = 0;
-		break;
-	}
-
-	if ( bike.bTimeSet ){
-		if ( bike.bTurnLeft ) { left_on = 1; }
-		if ( bike.bTurnLeft == 0 ) {
-			if ( left_on == 1 ){
-				bike.ucTimePos ++;
-				bike.ucTimePos %= 4;
-				left_on = 0;
-				pre_tick = Get_SysTick();
-			}
-		}
-		if ( bike.bNearLight ) { NL_on = 1; pre_tick = Get_SysTick(); }
-		if ( bike.bNearLight == 0 && NL_on == 1 ) {
-			NL_on = 0;
-			if ( Get_ElapseTick(pre_tick) < 5000 ){
-				switch ( bike.ucTimePos ){
-				case 0:
-					bike.ucHour += 10;
-					bike.ucHour %= 20;
-					break;
-				case 1:
-					if ( bike.ucHour % 10 < 9 )
-						bike.ucHour ++;
-					else
-						bike.ucHour -= 9;
-					break;
-				case 2:
-					bike.ucMinute += 10;
-					bike.ucMinute %= 60;
-					break;
-				case 3:
-					if ( bike.ucMinute % 10 < 9 )
-						bike.ucMinute ++;
-					else
-						bike.ucMinute -= 9;
-					break;
-				default:
-					bike.bTimeSet = 0;
-					break;
-				}
-			}
-			RtcTime.RTC_Hours 	= bike.ucHour;
-			RtcTime.RTC_Minutes = bike.ucMinute;
-			//PCF8563_SetTime(PCF_Format_BIN,&RtcTime);
-		}
-		if ( Get_ElapseTick(pre_tick) > 30000 ){
-			bike.bTimeSet = 0;
-		}
-	}		
-	
-	//PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
-	bike.ucHour 	= RtcTime.RTC_Hours%12;
-	bike.ucMinute 	= RtcTime.RTC_Minutes;
-}
-
-#endif
-
-
-unsigned char SpeedCaltTask(void)
-{
-	static unsigned int pre_tick=0;
-	static unsigned char TaskFlag = TASK_INIT;
-	static unsigned char lastSpeed = 0;
-	static unsigned char count = 0;
-    static signed char SpeedInc=0;
+	static uint16_t uiPreTick=0;
+	static uint8_t TaskFlag = TASK_INIT;
+	static uint8_t ucLastSpeed = 0;
+	static uint8_t ucCount = 0;
+    static signed char cSpeedInc=0;
+	static uint8_t yxterr=0;
 	
     if ( TaskFlag == TASK_EXIT )
       	return 0;
     
-	if ( Get_ElapseTick(pre_tick) > 10000 || bike.bBraked )
+	if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
 		TaskFlag = TASK_EXIT;
 
 	switch( TaskFlag ){
 	case TASK_INIT:
-		if ( Get_SysTick() < 3000 && bike.bTurnLeft == 1 ){
+		if ( Get_SysTick() < 3000 && sBike.bTurnLeft == 1 ){
 			TaskFlag = TASK_STEP1;
-			count = 0;
+			ucCount = 0;
 		}
 		break;
 	case TASK_STEP1:
-		if ( bike.bLastNear == 0 && bike.bNearLight == 1){
-			if ( ++count >= 8 ){
+		if ( sBike.bLastNear == 0 && sBike.bNearLight){
+			if ( ++ucCount >= 8 ){
 				TaskFlag 	= TASK_STEP2;
-				count 		= 0;
-				SpeedInc 	= 0;
-				bike.bSpeedFlash = 1;
+				ucCount 	= 0;
+				cSpeedInc 	= 0;
+				sBike.bSpeedFlash = 1;
+				yxterr = sBike.bYXTERR;
+				if ( yxterr )
+					sConfig.uiSpeedScale 	 = 1000;
+				else
+					sConfig.uiYXT_SpeedScale = 1000;
 			}
-			pre_tick = Get_SysTick();
+			uiPreTick = Get_SysTick();
 		}
-		bike.bLastNear = bike.bNearLight;
-        bike.bLastLeft = bike.bTurnLeft;
-        bike.bLastRight = bike.bTurnRight;
+		sBike.bLastNear = sBike.bNearLight;
 		break;
 	case TASK_STEP2:
-        if ( config.uiSysVoltage == 48 )
-			bike.ucSpeed = 42;
-        else if ( config.uiSysVoltage == 60 )
-			bike.ucSpeed = 44;
+        if ( sConfig.uiSysVoltage == 48 )
+			sBike.ucSpeed = 42;
+        else if ( sConfig.uiSysVoltage == 60 )
+			sBike.ucSpeed = 44;
 
-		if ( bike.bLastNear == 0 && bike.bNearLight == 1 ){
-			pre_tick = Get_SysTick();
-            if ( bike.bTurnLeft == 1 ) {
-				count = 0;
-				if ( bike.ucSpeed + SpeedInc > 1 )
-					SpeedInc --;
-	        } else if ( bike.bTurnRight == 1 ) {
-				count = 0;
-                if ( bike.ucSpeed + SpeedInc < 99 )
-					SpeedInc ++;
+		if ( sBike.bLastNear == 0 && sBike.bNearLight == 1 ){
+			uiPreTick = Get_SysTick();
+            if ( sBike.bTurnLeft == 1 ) {
+				ucCount = 0;
+				if ( sBike.ucSpeed + cSpeedInc > 1 )
+					cSpeedInc --;
+	        } else if ( sBike.bTurnRight == 1 ) {
+				ucCount = 0;
+                if ( sBike.ucSpeed + cSpeedInc < 99 )
+					cSpeedInc ++;
             } else {
-				if ( ++count >= 5 ){
+				if ( ++ucCount >= 5 ){
 					TaskFlag = TASK_EXIT;
-					bike.bSpeedFlash = 0;
-					if ( bike.ucSpeed ) {
-						if ( bike.bYXTERR )
-							config.uiSpeedScale 		= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
+					sBike.bSpeedFlash = 0;
+					if ( sBike.ucSpeed ) {
+						if ( yxterr )
+							sConfig.uiSpeedScale 	 = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
 						else
-							config.uiYXT_SpeedScale 	= (unsigned long)bike.ucSpeed*1000UL/(bike.ucSpeed+SpeedInc);
+							sConfig.uiYXT_SpeedScale = (uint32_t)sBike.ucSpeed*1000UL/(sBike.ucSpeed+cSpeedInc);
 						WriteConfig();
 					}
 				}
             }
 		}
-		bike.bLastNear = bike.bNearLight;
+		sBike.bLastNear = sBike.bNearLight;
 
-		if ( lastSpeed && bike.ucSpeed == 0 ){
+		if ( ucLastSpeed && sBike.ucSpeed == 0 ){
 			TaskFlag = TASK_EXIT;
 		}
         
-		//if ( bike.ucSpeed )
-		//	pre_tick = Get_SysTick();
+		//if ( sBike.ucSpeed )
+		//	uiPreTick = Get_SysTick();
 
-        bike.ucSpeed += SpeedInc;
-        lastSpeed 	= bike.ucSpeed;
+        sBike.ucSpeed += cSpeedInc;
+		ucLastSpeed = sBike.ucSpeed;
 		break;
 	case TASK_EXIT:
 	default:
-		bike.bSpeedFlash = 0;
+		sBike.bSpeedFlash = 0;
 		break;
 	}
 	return 0;
 }
+
+#if ( TIME_ENABLE == 1 )
+void TimeTask(void) AT(BIKE_CODE)
+{
+	static uint8_t ucTask=0,ucLeftOn= 0,NL_on = 0;
+	static uint16_t uiPreTick;
+	
+	if (!sBike.bHasTimer)
+		return ;
+	
+	if (sBike.ucSpeed > 1)
+		ucTask = 0xff;
+	
+	switch ( ucTask ){
+	case 0:
+		if ( Get_SysTick() < 5000 && sBike.bNearLight == 0 && sBike.bTurnLeft == 1 ){
+			uiPreTick = Get_SysTick();
+			ucTask++;
+		}
+		break;
+	case 1:
+		if ( sBike.bTurnLeft == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 2:
+		if ( sBike.bTurnRight == 1 ){
+			if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 3:
+		if ( sBike.bTurnRight == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 4:
+		if ( sBike.bTurnLeft == 1 ){
+			if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 5:
+		if ( sBike.bTurnLeft == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 6:
+		if ( sBike.bTurnRight == 1 ){
+			if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+		}
+	case 7:
+		if ( sBike.bTurnRight == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 8:
+		if ( sBike.bTurnLeft == 1 ){
+			if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+		}
+	case 9:
+		if ( sBike.bTurnLeft == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 10:
+		if ( sBike.bTurnRight == 1 ){
+			if ( Get_ElapseTick(uiPreTick) > 1000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000  || sBike.bNearLight ) ucTask = 0xFF;
+		}
+	case 11:
+		if ( sBike.bTurnRight == 0 ){
+			if ( Get_ElapseTick(uiPreTick) < 2000  ) ucTask = 0xFF;	else { uiPreTick = Get_SysTick(); ucTask++; }
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bNearLight ) ucTask = 0xFF;
+		}
+		break;
+	case 12:
+		if ( sBike.bTurnLeft == 1 || sBike.bNearLight ){
+			 ucTask = 0xFF;
+		} else {
+			if ( Get_ElapseTick(uiPreTick) > 1000 ) {
+				ucTask= 0;
+				sBike.ucTimePos = 0;
+				sBike.bTimeSet = 1;
+				uiPreTick = Get_SysTick();
+			}
+		}
+		break;
+	default:
+		sBike.ucTimePos = 0;
+		sBike.bTimeSet = 0;
+		ucTask = 0;
+		break;
+	}
+
+	if ( sBike.bTimeSet ){
+		if ( sBike.bTurnLeft ) { ucLeftOn = 1; }
+		if ( sBike.bTurnLeft == 0 ) {
+			if ( ucLeftOn == 1 ){
+				sBike.ucTimePos ++;
+				sBike.ucTimePos %= 4;
+				ucLeftOn = 0;
+				uiPreTick = Get_SysTick();
+			}
+		}
+		if ( sBike.bNearLight ) { NL_on = 1; uiPreTick = Get_SysTick(); }
+		if ( sBike.bNearLight == 0 && NL_on == 1 ) {
+			NL_on = 0;
+			if ( Get_ElapseTick(uiPreTick) < 5000 ){
+				switch ( sBike.ucTimePos ){
+				case 0:
+					sBike.ucHour += 10;
+					sBike.ucHour %= 20;
+					break;
+				case 1:
+					if ( sBike.ucHour % 10 < 9 )
+						sBike.ucHour ++;
+					else
+						sBike.ucHour -= 9;
+					break;
+				case 2:
+					sBike.ucMinute += 10;
+					sBike.ucMinute %= 60;
+					break;
+				case 3:
+					if ( sBike.ucMinute % 10 < 9 )
+						sBike.ucMinute ++;
+					else
+						sBike.ucMinute -= 9;
+					break;
+				default:
+					sBike.bTimeSet = 0;
+					break;
+				}
+			}
+			RtcTime.RTC_Hours 	= sBike.ucHour;
+			RtcTime.RTC_Minutes = sBike.ucMinute;
+			//PCF8563_SetTime(PCF_Format_BIN,&RtcTime);
+		}
+		if ( Get_ElapseTick(uiPreTick) > 30000 ){
+			sBike.bTimeSet = 0;
+		}
+	}		
+	
+	//PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
+	sBike.ucHour 	= RtcTime.RTC_Hours%12;
+	sBike.ucMinute 	= RtcTime.RTC_Minutes;
+}
+#endif
+
 
 void BikeCalibration(void) AT(BIKE_CODE)
 {
@@ -791,17 +768,17 @@ void BikeCalibration(void) AT(BIKE_CODE)
 			for(i=0;i<0xFF;i++){
 	            delay_n10ms(10);
                 if ( GetVolStabed(&vol) /*&& (400 < vol) && (vol < 600)*/ ){
-					bike.uiVoltage			= vol;
-		//			config.uiVolScale		= 1000;
-					config.uiVolScale		= (unsigned long)vol*1000UL/VOL_CALIBRATIOIN;
-					config.uiSysVoltage 	= 60;
-					config.uiTempScale 		= 1000;
-					config.uiSpeedScale		= 1000;
-					config.uiYXT_SpeedScale	= 1000;
-                    config.uiSingleTrip		= 0;
-					config.ulMile			= 0;
+					sBike.uiVoltage			= vol;
+		//			sConfig.uiVolScale		= 1000;
+					sConfig.uiVolScale		= (unsigned long)vol*1000UL/VOL_CALIBRATIOIN;
+					sConfig.uiSysVoltage 	= 60;
+					sConfig.uiTempScale 		= 1000;
+					sConfig.uiSpeedScale		= 1000;
+					sConfig.uiYXT_SpeedScale	= 1000;
+                    sConfig.uiSingleTrip		= 0;
+					sConfig.ulMile			= 0;
 					WriteConfig();
-                    bike.bVolFlash 			= 1;
+                    sBike.bVolFlash 			= 1;
                     break;
                 }
                 WDT_CLEAR();
@@ -810,10 +787,47 @@ void BikeCalibration(void) AT(BIKE_CODE)
     }
 }
 
+
+void Light_Task(void) AT(BIKE_CODE)
+{
+	unsigned char speed_mode=0;
+	
+	//if ( sBike.YXTERR )
+    {
+		P3PU 	&=~(BIT(2)|BIT(1)|BIT(0));
+		P3PD 	&=~(BIT(2)|BIT(1)|BIT(0));
+		P3DIE 	|= (BIT(2)|BIT(1)|BIT(0));
+		P3DIR 	|= (BIT(2)|BIT(1)|BIT(0));
+	
+		if( P30 ) {
+		  sBike.bNearLight = 1;
+		  P2PU  |= BIT(0);  //背光调节
+		  P2HD  |= BIT(0);
+		  P2DIE |= BIT(0);
+		  P2DIR &=~BIT(0);
+		  P20    = 0;
+		} else {
+		  sBike.bNearLight = 0;
+		  P2PU  |= BIT(0);  //背光调节
+		  P2HD  |= BIT(0);
+		  P2DIE |= BIT(0);
+		  P2DIR &=~BIT(0);
+		  P20    = 1;
+		}
+		//if( P31 ) sBike.bTurnRight = 1; else sBike.bTurnRight = 0;
+		//if( P32 ) sBike.bTurnLeft  = 1; else sBike.bTurnLeft  = 0;
+
+		sBike.ucPHA_Speed 	= (unsigned long)GetSpeed();
+		sBike.ucSpeed 		= (unsigned long)sBike.ucPHA_Speed*1000UL/sConfig.uiSpeedScale;
+    	//deg("ucPHA_Speed=%u,SpeedScale=%u,Speed=%u\n",sBike.ucPHA_Speed,sConfig.SpeedScale,sBike.ucSpeed);
+    }	
+}
+
+
 void BikePowerUp(void)
 {
 	HotReset();
-	if ( bike.bHotReset == 0 ){
+	if ( sBike.bHotReset == 0 ){
 		BL55072_Config(1);
 	} else {
 		BL55072_Config(0);
@@ -829,11 +843,11 @@ void bike_task(void) AT(BIKE_CODE)
 {
 	unsigned char i;
 	unsigned int tick;
-	static unsigned int count=0;
-	unsigned int vol=0;
+	static unsigned int uiCount=0;
+	unsigned int uiVol=0;
 	static unsigned int task=BIKE_INIT;	
 	
-	bike.uiTick += 100;
+	sBike.uiTick += 100;
 	
 	switch(task){
 	case BIKE_INIT:
@@ -846,15 +860,15 @@ void bike_task(void) AT(BIKE_CODE)
 		BikeCalibration();
 
 	#if ( TIME_ENABLE == 1 )	
-		//bike.HasTimer = !PCF8563_Check();
-		//bike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
+		//sBike.HasTimer = !PCF8563_Check();
+		//sBike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
 	#endif
   	
 		GetVolStabed(&vol);
-		bike.uiVoltage 	= (unsigned long)vol*1000UL/config.uiVolScale;
-		bike.ucBatStatus= GetBatStatus(bike.uiVoltage);
+		sBike.uiVoltage 	= (unsigned long)vol*1000UL/sConfig.uiVolScale;
+		sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
 
-		if ( bike.bHotReset == 0 ) {
+		if ( sBike.bHotReset == 0 ) {
 			task = BIKE_RESET_WAIT;
 		} else {
 			task = BIKE_SETUP;
@@ -869,49 +883,62 @@ void bike_task(void) AT(BIKE_CODE)
                 break;
 			}
             delay_n10ms(10);
-            bike.uiTick += 100;
+            sBike.uiTick += 100;
             WDT_CLEAR();
         }
 		break;
     case BIKE_SETUP:
         task = BIKE_RUN;
 	case BIKE_RUN:
-		//tick = Get_SysTick();
+		//uiTick = Get_SysTick();
 		
-		//if ( (tick >= tick_100ms && (tick - tick_100ms) >= 100 ) || \
-		//	 (tick <  tick_100ms && (0xFFFF - tick_100ms + tick) >= 100 ) ) {
-		//	tick_100ms = tick;
-			count ++;
+		//if ( (uiTick >= tick_100ms && (uiTick - tick_100ms) >= 100 ) || \
+		//	 (uiTick <  tick_100ms && (0xFFFF - tick_100ms + uiTick) >= 100 ) ) {
+		//	tick_100ms = uiTick;
+			uiCount ++;
 
-            if ( (count % 5) == 0 )
-            {
-                if ( GetVolStabed(&vol) ){
-					bike.uiVoltage 	= (unsigned long)vol*1000UL/config.uiVolScale;
-					bike.ucBatStatus= GetBatStatus(bike.uiVoltage);
+            if ( (uiCount % 5) == 0 ) {
+                if ( GetVolStabed(&uiVol) ){
+					sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
+					sBike.ucBatStatus= GetuiBatStatus(sBike.uiVoltage);
                 }
             }
+#if 0
+			if ( (uiCount % 10) == 0 ){
+				if ( sBike.bUart == 0 ){
+				//	sBike.siTemperature= (long)GetTemp()	*1000UL/sConfig.TempScale;
+					sBike.siTemperature= GetTemp();
+				}
+			}
+#endif
+		#ifdef LCD8794GCT
+			//sBike.ucEnergy 	= GetBatEnergy(sBike.uiVoltage);
+		#endif
 		
 			Light_Task();
 			MileTask();
 			
+		#if ( YXT_ENABLE == 1 )
+			YXT_Task(&sBike,&sConfig);  
+		#endif
+			
+			SpeedCaltTask();
 					
 		#if ( TIME_ENABLE == 1 )	
 			TimeTask();
 		#endif
 
-            SpeedCaltTask();
-
 		#ifdef LCD_SEG_TEST
-			if ( count >= 100 ) count = 0;
-			bike.ucVoltage 		= count/10 + count/10*10UL + count/10*100UL + count/10*1000UL;
-			bike.siTemperature	= count/10 + count/10*10UL + count/10*100UL;
-			bike.ucSpeed		= count/10 + count/10*10;
-			bike.ulMile			= count/10 + count/10*10UL + count/10*100UL + count/10*1000UL + count/10*10000UL;
-			bike.ucHour       	= count/10 + count/10*10;
-			bike.ucMinute     	= count/10 + count/10*10;
+			if ( uiCount >= 100 ) uiCount = 0;
+			sBike.ucVoltage 	= uiCount/10 + uiCount/10*10UL + uiCount/10*100UL + uiCount/10*1000UL;
+			sBike.siTemperature	= uiCount/10 + uiCount/10*10UL + uiCount/10*100UL;
+			sBike.ucSpeed		= uiCount/10 + uiCount/10*10;
+			sBike.ulMile		= uiCount/10 + uiCount/10*10UL + uiCount/10*100UL + uiCount/10*1000UL + uiCount/10*10000UL;
+			sBike.ucHour       	= uiCount/10 + uiCount/10*10;
+			sBike.ucMinute     	= uiCount/10 + uiCount/10*10;
 		#endif
 
-            MenuUpdate(&bike);
+            MenuUpdate(&sBike);
 	
 		//}
 		break;
