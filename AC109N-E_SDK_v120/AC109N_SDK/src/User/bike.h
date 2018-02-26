@@ -7,6 +7,9 @@
   * @brief
   ******************************************************************************
   * @Changlog
+  * V1.17　-　20180224
+  * 修改60V系统电量显示；
+  *
   * V1.16　-　20171103
   * 修改FM芯片损坏后固定有OFF模式的问题、OFF模式关机后，插入U盘启动切入MP3模式、U盘内歌曲比较多时从FM切换到MP3模式长时间等待的问题；
   *
@@ -155,13 +158,13 @@ typedef struct {
 	unsigned char ucSum;
 } BIKE_CONFIG,*pBIKE_CONFIG;
 	
-extern BIKE_STATUS bike;
-extern BIKE_CONFIG config;
+extern BIKE_STATUS sBike;
+extern BIKE_CONFIG sConfig;
 
 unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);
-void LRFlash_Task(void);
+void LRFlashTask(void);
 void BikePowerUp(void);
 void GetVolSample(void);
 void BikeCalibration(void);

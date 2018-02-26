@@ -232,32 +232,32 @@ void MenuUpdate(BIKE_STATUS* bike) AT(BIKE_CODE)
 
 void LCD_show_volume(void) AT(BIKE_CODE)
 {
-	bike.bShowVol = 1;
-	bike.uiValue  = main_vol_L;
-	if ( bike.uiValue > 30 )
-		bike.uiValue = 30;
+	sBike.bShowVol = 1;
+	sBike.uiValue  = main_vol_L;
+	if ( sBike.uiValue > 30 )
+		sBike.uiValue = 30;
 }
 /*
 void LCD_show_dev(void) AT(BIKE_CODE)
 {
     //Music Device type
     if (device_active == DEVICE_UDISK)
-		bike.uiPlayMedia = MEDIA_USB;
+		sBike.uiPlayMedia = MEDIA_USB;
 #ifdef SDMMCB_EN
     else if ((device_active == DEVICE_SDMMCA)||(device_active == DEVICE_SDMMCB))
 #elif defined SDMMCA_EN
     if (device_active == DEVICE_SDMMCA)
 #endif
-		bike.uiPlayMedia = MEDIA_SD;
+		sBike.uiPlayMedia = MEDIA_SD;
 }*/
 
 void LCD_show_music_wait(void) AT(BIKE_CODE)
 {
-	bike.uiPlayMedia = MEDIA_USB;
- 	bike.bShowWait = 1;
-	bike.bPlayFlash = 0;
-    bike.uiPlayStatus = MAD_PLAY;
-    MenuUpdate(&bike);
+	sBike.uiPlayMedia = MEDIA_USB;
+ 	sBike.bShowWait = 1;
+	sBike.bPlayFlash = 0;
+    sBike.uiPlayStatus = MAD_PLAY;
+    MenuUpdate(&sBike);
 }
 
 void LCD_show_music_main(void) AT(BIKE_CODE)
@@ -265,64 +265,64 @@ void LCD_show_music_main(void) AT(BIKE_CODE)
     u16 play_time;
 
     /*Music Play time info*/
-    bike.uiPlayTime = get_music_play_time();
-	bike.bShowVol = 0;
- 	bike.bShowWait = 0;
-    bike.uiShowChannel = 0;
-    if( bike.uiShowFileNO ) bike.uiShowFileNO--;
-	bike.uiPlayMedia = MEDIA_USB;
+    sBike.uiPlayTime = get_music_play_time();
+	sBike.bShowVol = 0;
+ 	sBike.bShowWait = 0;
+    sBike.uiShowChannel = 0;
+    if( sBike.uiShowFileNO ) sBike.uiShowFileNO--;
+	sBike.uiPlayMedia = MEDIA_USB;
 
     //LCD_show_dev();
-    bike.uiPlayStatus = Music_Play_var.bPlayStatus;
-	if ( bike.uiPlayStatus == MAD_PAUSE ){
-	} else if ( bike.uiPlayStatus == MAD_PLAY ){
+    sBike.uiPlayStatus = Music_Play_var.bPlayStatus;
+	if ( sBike.uiPlayStatus == MAD_PAUSE ){
+	} else if ( sBike.uiPlayStatus == MAD_PLAY ){
 	}
 }
 
 void LCD_show_fm_main(void) AT(BIKE_CODE)
 {
-    bike.uiPlayStatus = MAD_PLAY;
-    bike.bPlayFlash = 0;
- 	bike.bShowWait = 0;
+    sBike.uiPlayStatus = MAD_PLAY;
+    sBike.bPlayFlash = 0;
+ 	sBike.bShowWait = 0;
     /*FM - Frequency*/
- 	bike.bShowVol = 0;
-    bike.uiShowFileNO = 0;
-    if( bike.uiShowChannel ) bike.uiShowChannel--;
- 	bike.uiPlayMedia = MEDIA_FM;
-    bike.uiFM_Freq = fm_mode_var.wFreq;
-	bike.uiFM_Channel = fm_mode_var.bFreChannel;
-    MenuUpdate(&bike);
-    //deg("LCD_show_fm_main %u %u\n",bike.uiPlayMedia,bike.uiFM_Freq);
+ 	sBike.bShowVol = 0;
+    sBike.uiShowFileNO = 0;
+    if( sBike.uiShowChannel ) sBike.uiShowChannel--;
+ 	sBike.uiPlayMedia = MEDIA_FM;
+    sBike.uiFM_Freq = fm_mode_var.wFreq;
+	sBike.uiFM_Channel = fm_mode_var.bFreChannel;
+    MenuUpdate(&sBike);
+    //deg("LCD_show_fm_main %u %u\n",sBike.uiPlayMedia,sBike.uiFM_Freq);
 }
 
 void LCD_show_fm_station(void) AT(BIKE_CODE)
 {
     /*FM - Station*/
-	bike.uiFM_Channel = fm_mode_var.bFreChannel;
- 	bike.bShowWait = 0;
- 	bike.bShowVol = 0;
-    bike.uiShowChannel = 2;  //2s
+	sBike.uiFM_Channel = fm_mode_var.bFreChannel;
+ 	sBike.bShowWait = 0;
+ 	sBike.bShowVol = 0;
+    sBike.uiShowChannel = 2;  //2s
 }
 
 void LCD_show_file_number(void) AT(BIKE_CODE)
 {
     /*Music File Number info*/
-	bike.uiPlayTime = 0;
-	bike.bShowVol = 0;
- 	bike.bShowWait = 0;
-    bike.uiShowFileNO = 2;  //2s
-    bike.uiFileNO = playfile.given_file_number;
+	sBike.uiPlayTime = 0;
+	sBike.bShowVol = 0;
+ 	sBike.bShowWait = 0;
+    sBike.uiShowFileNO = 2;  //2s
+    sBike.uiFileNO = playfile.given_file_number;
 }
 
 void LCD_mute(unsigned char mute)  AT(BIKE_CODE)
 {
-  bike.bMute = mute;
+  sBike.bMute = mute;
 }
 
 void LCD_stop(void) AT(BIKE_CODE)
 {
- 	bike.uiPlayMedia = MEDIA_OFF;
- 	bike.bShowWait = 0;
-    bike.bMute = 0;
-    bike.bPlayFlash = 0;
+ 	sBike.uiPlayMedia = MEDIA_OFF;
+ 	sBike.bShowWait = 0;
+    sBike.bMute = 0;
+    sBike.bPlayFlash = 0;
 }

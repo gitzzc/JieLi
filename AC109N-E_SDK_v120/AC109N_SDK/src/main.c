@@ -107,12 +107,12 @@ _near_func __root void Timer1_ISR(void) AT(COMMON_CODE)
         //USB_online_otp();
         key_scan();
         dec_delay_counter();
-        LRFlash_Task();
+        LRFlashTask();
 		GetVolSample();
     }
     if ((cnt % 50) == 0)
     {
-		//MenuUpdate(&bike);
+		//MenuUpdate(&sBike);
         put_msg_lifo(MSG_100MS);
     }
     if ((cnt % 250) == 0)

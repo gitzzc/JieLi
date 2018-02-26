@@ -8,18 +8,24 @@
 #include "bike.h"
 
 #define ContainOf(x) (sizeof(x)/sizeof(x[0]))
+typedef unsigned char uint8_t;
+typedef unsigned int  uint16_t;
+typedef   signed int  int16_t;
+typedef unsigned long uint32_t;
+
 
 const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
-const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};
+//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
+const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
 
 unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[16];
-unsigned int _xdata vol_buf[32];
+unsigned int _xdata vol_buf[32]; 
 unsigned int _xdata temp_buf[4];
 unsigned char vol_index=0;
 
 BIKE_STATUS _xdata sBike;
-__no_init BIKE_CONFIG _xdata config;
+__no_init BIKE_CONFIG _xdata sConfig;
 
 
 unsigned int Get_SysTick(void) AT(BIKE_CODE)
@@ -33,7 +39,7 @@ unsigned int Get_SysTick(void) AT(BIKE_CODE)
 	return uiTick;
 }
 
-unsigned int Get_ElapseTick(unsigned int pre_tick) AT(BIKE_CODE)
+unsigned int Get_ElapseTick(unsigned int uiPreTick) AT(BIKE_CODE)
 {
 	uint16_t uiTick = Get_SysTick();
 
@@ -125,18 +131,18 @@ void InitConfig(void) AT(BIKE_CODE)
     }
 }
 
-unsigned char GetBatStatus(unsigned int vol) AT(BIKE_CODE)
+unsigned char GetBatStatus(unsigned int uiVol) AT(BIKE_CODE)
 {
 	uint8_t i;
-	int16_t const _code * BatStatus;
+	int16_t const _code * uiBatStatus;
 
 	switch ( sConfig.uiSysVoltage ){
-	case 48:BatStatus = BatStatus48;break;
-	case 60:BatStatus = BatStatus60;break;
-	default:BatStatus = BatStatus60;break;
+	case 48:uiBatStatus = BatStatus48;break;
+	case 60:uiBatStatus = BatStatus60;break;
+	default:uiBatStatus = BatStatus60;break;
 	}
 
-	for(i=0;i<ContainOf(uiBatStatus60);i++)
+	for(i=0;i<ContainOf(BatStatus60);i++)
 		if ( uiVol < uiBatStatus[i] ) break;
 	return i;
 }
@@ -864,8 +870,8 @@ void bike_task(void) AT(BIKE_CODE)
 		//sBike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
 	#endif
   	
-		GetVolStabed(&vol);
-		sBike.uiVoltage 	= (unsigned long)vol*1000UL/sConfig.uiVolScale;
+		GetVolStabed(&uiVol);
+		sBike.uiVoltage 	= (unsigned long)uiVol*1000UL/sConfig.uiVolScale;
 		sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
 
 		if ( sBike.bHotReset == 0 ) {
@@ -900,7 +906,7 @@ void bike_task(void) AT(BIKE_CODE)
             if ( (uiCount % 5) == 0 ) {
                 if ( GetVolStabed(&uiVol) ){
 					sBike.uiVoltage = (uint32_t)uiVol*1000UL/sConfig.uiVolScale;
-					sBike.ucBatStatus= GetuiBatStatus(sBike.uiVoltage);
+					sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
                 }
             }
 #if 0
