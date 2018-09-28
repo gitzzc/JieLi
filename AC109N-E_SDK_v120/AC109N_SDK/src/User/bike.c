@@ -17,6 +17,7 @@ typedef unsigned long uint32_t;
 const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
 //const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
 const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
+const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,641,651,661,671,681,691,701,711,720,0xFFFF};	//V1.18
 
 unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[16];
@@ -125,8 +126,12 @@ void InitConfig(void) AT(BIKE_CODE)
     P3DIR   |= BIT(3);
 
 	if ( P33 == 0 ){
-        sConfig.uiSysVoltage = 48;
-    } else {
+#ifdef VOL6072
+		sConfig.uiSysVoltage = 72;
+#else
+		sConfig.uiSysVoltage = 48;
+#endif
+	} else {
         sConfig.uiSysVoltage = 60;
     }
 }
@@ -139,6 +144,7 @@ unsigned char GetBatStatus(unsigned int uiVol) AT(BIKE_CODE)
 	switch ( sConfig.uiSysVoltage ){
 	case 48:uiBatStatus = BatStatus48;break;
 	case 60:uiBatStatus = BatStatus60;break;
+	case 72:uiBatStatus = BatStatus72;break;
 	default:uiBatStatus = BatStatus60;break;
 	}
 
@@ -299,6 +305,14 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 		speed = (unsigned long)vol*15151UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*44 KM/H
       } else/* if ( vol < 335 )*/{
 		speed = (unsigned long)vol*15110UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/33.5V*49 KM/H
+      }
+	} else if ( sConfig.uiSysVoltage	== 72 ) {
+      if ( vol < 260 ){
+		speed = (unsigned long)vol*12462UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/31.5V*38 KM/H
+      } else if ( vol < 300 ){
+		speed = (unsigned long)vol*12626UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/36V*44 KM/H
+      } else/* if ( vol < 335 )*/{
+		speed = (unsigned long)vol*12498UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/40.5V*49 KM/H
       }
 	}
 	if ( speed > 99 )
@@ -544,6 +558,8 @@ uint8_t SpeedCaltTask(void)
         if ( sConfig.uiSysVoltage == 48 )
 			sBike.ucSpeed = 42;
         else if ( sConfig.uiSysVoltage == 60 )
+			sBike.ucSpeed = 44;
+        else if ( sConfig.uiSysVoltage == 72 )
 			sBike.ucSpeed = 44;
 
 		if ( sBike.bLastNear == 0 && sBike.bNearLight == 1 ){
