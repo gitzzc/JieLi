@@ -15,8 +15,8 @@ typedef unsigned long uint32_t;
 
 
 const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
-//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
-const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
+const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
+//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
 const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,641,651,661,671,681,691,701,711,720,0xFFFF};	//V1.18
 
 unsigned int _xdata tick_100ms=0;
