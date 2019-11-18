@@ -8,6 +8,9 @@
   ******************************************************************************
   * @Changlog
   *
+  * V1.20 - 20191016
+  * 增加STARTUP_OFF_MODE定义，选择开机后是否进入待机模式；
+  *
   * V1.19 - 20191014
   * 修改ICSET寄存器设置，兼容BL55072A芯片。
   *
@@ -66,6 +69,7 @@
 #define YXT_ENABLE  0				
 #define RESET_MILE_ENABLE
 #define VOL6072
+//#define STARTUP_OFF_MODE
 
 #define BIKE_EEPROM_START   0x80
 

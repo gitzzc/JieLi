@@ -289,8 +289,12 @@ static void sys_init(void) AT(CSTART)
 	/*DAC ≥ı ºªØ*/
     DAC_init();
 
+#ifdef STARTUP_OFF_MODE
+    work_mode = OFF_MODE;
+#else
     work_mode =(ENUM_WORK_MODE)get_memory(MEM_SYSMODE);
-	main_vol_L = get_memory(MEM_VOL_L);
+#endif
+    main_vol_L = get_memory(MEM_VOL_L);
 	main_vol_R = get_memory(MEM_VOL_R);
 	set_main_vol(main_vol_L, main_vol_R);
     playfile.given_device = NO_DEVICE;
