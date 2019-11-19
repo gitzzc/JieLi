@@ -290,7 +290,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
     vol = (unsigned long)vol*1033/1024;
     //deg("vol %u\n",vol);
 	
-	if ( sConfig.uiSysVoltage	== 48 ){	
+	if ( sConfig.uiSysVoltage	== 48 ){
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
       } else if ( vol < 240 ){
@@ -299,13 +299,17 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 		speed = (unsigned long)vol*18364UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/27V*48 KM/H
       }
 	} else if ( sConfig.uiSysVoltage	== 60 ) {
-      if ( vol < 260 ){
+#ifdef BIKE_48_60_FM_BANPENG
+		speed = (unsigned long)vol*16528UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/25V*40 KM/H
+#else
+	  if ( vol < 260 ){
 		speed = (unsigned long)vol*15098UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/26V*38 KM/H
       } else if ( vol < 300 ){
 		speed = (unsigned long)vol*15151UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*44 KM/H
       } else/* if ( vol < 335 )*/{
 		speed = (unsigned long)vol*15110UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/33.5V*49 KM/H
       }
+#endif
 	} else if ( sConfig.uiSysVoltage	== 72 ) {
       if ( vol < 260 ){
 		speed = (unsigned long)vol*12462UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/31.5V*38 KM/H
