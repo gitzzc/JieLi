@@ -301,6 +301,8 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	} else if ( sConfig.uiSysVoltage	== 60 ) {
 #ifdef BIKE_48_60_FM_BANPENG
 		speed = (unsigned long)vol*16528UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/25V*40 KM/H
+#elif defined BIKE_JINGPENG_GOUBIAO
+		speed = (unsigned long)vol*18938UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*55 KM/H
 #else
 	  if ( vol < 260 ){
 		speed = (unsigned long)vol*15098UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/26V*38 KM/H
@@ -311,6 +313,9 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
       }
 #endif
 	} else if ( sConfig.uiSysVoltage	== 72 ) {
+#ifdef BIKE_JINGPENG_GOUBIAO
+	  speed = (unsigned long)vol*12633UL/102400UL;     //ADC/1024*103.3/3.3*3.3V/35V*55 KM/H
+#else
       if ( vol < 260 ){
 		speed = (unsigned long)vol*12462UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/31.5V*38 KM/H
       } else if ( vol < 300 ){
@@ -318,6 +323,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
       } else/* if ( vol < 335 )*/{
 		speed = (unsigned long)vol*12498UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/40.5V*49 KM/H
       }
+#endif
 	}
 	if ( speed > 99 )
 		speed = 99;

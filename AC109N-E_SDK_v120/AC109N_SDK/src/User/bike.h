@@ -8,6 +8,9 @@
   ******************************************************************************
   * @Changlog
   *
+  * V1.22 - 20200420
+  * 增加BIKE_JINGPENG_GOUBIAO 金彭国标车型定义，需要改成60V系统对应30V电压对应55km,72V系统对应35V电压对应55km;
+  *
   * V1.21 - 20191118
   * 增加BIKE_48_60_FM_BANPENG车型定义，60V系统，电机相电压25V，对应相速度是40km/h。
   *
@@ -72,11 +75,11 @@
 #define YXT_ENABLE  0				
 #define RESET_MILE_ENABLE
 
-//#define VOL6072
-//#define STARTUP_OFF_MODE
-
 /******************************************************************************/
-#define BIKE_48_60_FM_BANPENG	//48/60Fm半篷
+#define VOL6072
+//#define STARTUP_OFF_MODE
+//#define BIKE_48_60_FM_BANPENG	//48/60Fm半篷
+#define BIKE_JINGPENG_GOUBIAO
 /******************************************************************************/
 
 #define BIKE_EEPROM_START   0x80
