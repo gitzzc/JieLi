@@ -314,7 +314,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 #endif
 	} else if ( sConfig.uiSysVoltage	== 72 ) {
 #ifdef BIKE_JINGPENG_GOUBIAO
-	  speed = (unsigned long)vol*12633UL/102400UL;     //ADC/1024*103.3/3.3*3.3V/35V*55 KM/H
+	  speed = (unsigned long)vol*16233UL/102400UL;     //ADC/1024*103.3/3.3*3.3V/35V*55 KM/H
 #else
       if ( vol < 260 ){
 		speed = (unsigned long)vol*12462UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/31.5V*38 KM/H
