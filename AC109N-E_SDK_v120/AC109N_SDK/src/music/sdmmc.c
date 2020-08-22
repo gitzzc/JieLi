@@ -32,7 +32,7 @@ _near_func void sdmmc_cmd_det(void) AT(COMMON_CODE)
     u8 tmp;
 
     tmp = sd_online_check();
-    
+
     if (tmp == 0xff)        //状态没有改变
         return;
 
@@ -68,7 +68,7 @@ _near_func void sdmmc_cmd_det(void) AT(COMMON_CODE)
 /*-----------------------------------------------------------------------------*/
 _near_func void sdmmc_clk_det0(void)
 {
-    u8 tmp;
+//    u8 tmp;
 #ifdef SDMMCA_EN
     tmp = sdmmc_clkio_chk( SDMMCA_ID );
     if( (SDMMCA_ID != tmp) && (SDMMCA_ID != sdmmc_ctler_flag))
@@ -174,7 +174,7 @@ _near_func  void sdmmc_clk_det1(void)
 /*-----------------------------------------------------------------------------*/
 _near_func void sdmmc_io_detect(void)
 {
-#ifdef SDMMCA_EN    
+#ifdef SDMMCA_EN
     ///<A
     P1PU |=  0x01;
     P1DIR |=  0x01;
@@ -196,8 +196,8 @@ _near_func void sdmmc_io_detect(void)
         }
     }
 #endif
-    
-#ifdef SDMMCB_EN    
+
+#ifdef SDMMCB_EN
     ///<B
     P1PU |=  0x02;
     P1DIR |=  0x02;
@@ -245,7 +245,7 @@ _monitor u8 check_sd_controller(void)
 bool sdmmc_idle(u8 dev)
 {
     if (0 == check_sd_controller())
-    {    
+    {
         u8 p_status;
 
         p_status = pause_decode(0);
@@ -254,8 +254,8 @@ bool sdmmc_idle(u8 dev)
         unlock_cmd_chk();
         sdmmc_ctler_flag = 0;
         if (p_status == MAD_PLAY)
-            start_decode();  
-        return true;   
+            start_decode();
+        return true;
     }
     else                            //此次写失败
         return false;

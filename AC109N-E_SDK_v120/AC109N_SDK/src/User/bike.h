@@ -8,6 +8,9 @@
   ******************************************************************************
   * @Changlog
   *
+  * V1.24 - 20200822
+  * 修改系统电压判断逻辑，电压选择线对插（=0）是60V系统，系统电压低于60V，断开是48系统，电压高于60V，断开是72V系统。删除VOL6072定义。
+  *
   * V1.23 - 20200424
   * 增加BIKE_TIANJINGFENGCHI 天津风驰汽车配件有限公司车型定义，需要改成48V系统对应24V电压对应38km,60V系统对应30V电压对应45km,电池格改成5格显示；；
   *
@@ -82,12 +85,11 @@
 #define RESET_MILE_ENABLE
 
 /******************************************************************************/
-//#define VOL6072
-#define STARTUP_OFF_MODE
+//#define STARTUP_OFF_MODE
 
 //#define BIKE_48_60_FM_BANPENG	//48/60Fm半篷
-//#define BIKE_JINGPENG_GOUBIAO
-#define BIKE_TIANJINFENGCHI
+#define BIKE_JINGPENG_GOUBIAO
+//#define BIKE_TIANJINFENGCHI
 /******************************************************************************/
 
 #define BIKE_EEPROM_START   0x80
@@ -192,6 +194,7 @@ typedef struct {
 extern BIKE_STATUS sBike;
 extern BIKE_CONFIG sConfig;
 
+unsigned char GetVolStabed(unsigned int* vol);
 unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);

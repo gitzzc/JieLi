@@ -27,7 +27,7 @@ typedef unsigned long uint32_t;
 
 unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[16];
-unsigned int _xdata vol_buf[32]; 
+unsigned int _xdata vol_buf[32];
 unsigned int _xdata temp_buf[4];
 unsigned char vol_index=0;
 
@@ -51,7 +51,7 @@ unsigned int Get_ElapseTick(unsigned int uiPreTick) AT(BIKE_CODE)
 	uint16_t uiTick = Get_SysTick();
 
 	if ( uiTick >= uiPreTick )	
-		return (uiTick - uiPreTick); 
+		return (uiTick - uiPreTick);
 	else
 		return (0xFFFF - uiPreTick + uiTick);
 }
@@ -89,6 +89,7 @@ void InitConfig(void) AT(BIKE_CODE)
 {
 	uint8_t *cbuf = (uint8_t *)&sConfig;
 	uint8_t i,sum;
+	unsigned int vol;
 
 	for(i=0;i<sizeof(BIKE_CONFIG);i++)
 		cbuf[i] = get_memory(BIKE_EEPROM_START + i);
@@ -132,20 +133,20 @@ void InitConfig(void) AT(BIKE_CODE)
     P3DIR   |= BIT(3);
 
 	if ( P33 == 0 ){
-#ifdef VOL6072
-		sConfig.uiSysVoltage = 72;
-#else
-		sConfig.uiSysVoltage = 48;
-#endif
+		sConfig.uiSysVoltage = 60;
 	} else {
-        sConfig.uiSysVoltage = 60;
+		GetVolStabed(&vol);
+		if ( vol < 550 )
+			sConfig.uiSysVoltage = 48;
+		else
+			sConfig.uiSysVoltage = 72;
     }
 }
 
 unsigned char GetBatStatus(unsigned int uiVol) AT(BIKE_CODE)
 {
 	uint8_t i;
-	int16_t const _code * uiBatStatus;
+	uint16_t const _code * uiBatStatus;
 
 	switch ( sConfig.uiSysVoltage ){
 	case 48:uiBatStatus = BatStatus48;break;
@@ -160,7 +161,7 @@ unsigned char GetBatStatus(unsigned int uiVol) AT(BIKE_CODE)
 }
 
 #if 0
-const int32_t NTC_B3450[29][2] = 
+const int32_t NTC_B3450[29][2] =
 {
 	251783,	-400,	184546,	-350,	137003,	-300,	102936,	-250,	78219,	-200,
 	60072,	-150,	46601,	-100,	36495,	-50,	28837,	0,		22980,	50,
@@ -239,22 +240,22 @@ void GetVolSample(void)
 {
     if ( vol_index >= ContainOf(vol_buf) )
       return ;
-    
+
     vol_buf[vol_index++] = AD_var.wADValue[AD_BIKE_VOL];
 }
 
 unsigned char GetVolStabed(unsigned int* vol) AT(BIKE_CODE)
 {
 	unsigned long mid;
-	static int buf[32];
-	static unsigned char index = 0;
+//	static int buf[32];
+//	static unsigned char index = 0;
 	unsigned char i;
-    
+
     EA = 0;
     if ( vol_index < ContainOf(vol_buf) ){
       EA = 1;
       return 0;
-    }      
+    }
 	
 	for(i=0,mid=0;i<ContainOf(vol_buf);i++)
 		mid += vol_buf[i];
@@ -299,7 +300,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	if ( sConfig.uiSysVoltage	== 48 ){
 #ifdef BIKE_TIANJINFENGCHI
 		speed = (unsigned long)vol*16356UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*38 KM/H
-#elif
+#else
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
       } else if ( vol < 240 ){
@@ -311,7 +312,7 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	} else if ( sConfig.uiSysVoltage	== 60 ) {
 #ifdef BIKE_TIANJINFENGCHI
 		speed = (unsigned long)vol*15495UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*45 KM/H
-#elif BIKE_48_60_FM_BANPENG
+#elif defined BIKE_48_60_FM_BANPENG
 		speed = (unsigned long)vol*16528UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/25V*40 KM/H
 #elif defined BIKE_JINGPENG_GOUBIAO
 		speed = (unsigned long)vol*18938UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*55 KM/H
@@ -425,7 +426,7 @@ unsigned char MileResetTask(void) AT(BIKE_CODE)
 	
     if ( TaskFlag == TASK_EXIT )
         return 0;
-    
+
 	if ( Get_ElapseTick(uiPreTick) > 10000 | sBike.bBraked | sBike.ucSpeed )
 		TaskFlag = TASK_EXIT;
 
@@ -548,7 +549,7 @@ uint8_t SpeedCaltTask(void)
 	
     if ( TaskFlag == TASK_EXIT )
       	return 0;
-    
+
 	if ( Get_ElapseTick(uiPreTick) > 10000 || sBike.bBraked )
 		TaskFlag = TASK_EXIT;
 
@@ -613,7 +614,7 @@ uint8_t SpeedCaltTask(void)
 		if ( ucLastSpeed && sBike.ucSpeed == 0 ){
 			TaskFlag = TASK_EXIT;
 		}
-        
+
 		//if ( sBike.ucSpeed )
 		//	uiPreTick = Get_SysTick();
 
@@ -834,7 +835,7 @@ void BikeCalibration(void) AT(BIKE_CODE)
 
 void Light_Task(void) AT(BIKE_CODE)
 {
-	unsigned char speed_mode=0;
+//	unsigned char speed_mode=0;
 	
 	//if ( sBike.YXTERR )
     {
@@ -886,7 +887,7 @@ void BikePowerUp(void)
 void bike_task(void) AT(BIKE_CODE)
 {
 	unsigned char i;
-	unsigned int tick;
+//	unsigned int tick;
 	static unsigned int uiCount=0;
 	unsigned int uiVol=0;
 	static unsigned int task=BIKE_INIT;	
@@ -896,9 +897,17 @@ void bike_task(void) AT(BIKE_CODE)
 	switch(task){
 	case BIKE_INIT:
 
-		for(i=0;i<32;i++){	GetVolSample(); }
+	//	for(i=0;i<32;i++){	GetVolSample(); }
 	//	for(i=0;i<16;i++){	GetSpeed();	/*IWDG_ReloadCounter(); */ }
 	//	for(i=0;i<4;i++) {	GetTemp();	/*IWDG_ReloadCounter(); */ }
+
+		for(i=0;i<0xFF;i++){
+            if ( GetVolStabed(&uiVol) == 0 ){
+                WDT_CLEAR();
+                delay_n10ms(10);
+            } else
+            	break;
+		}
 
 		InitConfig();
 		BikeCalibration();
@@ -963,7 +972,7 @@ void bike_task(void) AT(BIKE_CODE)
 			MileTask();
 			
 		#if ( YXT_ENABLE == 1 )
-			YXT_Task(&sBike,&sConfig);  
+			YXT_Task(&sBike,&sConfig);
 		#endif
 			
 			SpeedCaltTask();

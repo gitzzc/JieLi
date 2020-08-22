@@ -41,8 +41,8 @@ extern _no_init bool _bit mute;
 /*----------------------------------------------------------------------------*/
 void fm_play(void) AT(FM_CODE)
 {
-    u8 scan_counter,i;
-    u8 res;
+    u8 scan_counter;//,i;
+//    u8 res;
     u8 last_dev;
 
     UI_menu(MENU_FM_MAIN);
@@ -50,7 +50,7 @@ void fm_play(void) AT(FM_CODE)
     while (1)
     {
         u8 key = app_get_msg();
-        
+
         switch (key)
         {
         case MSG_MUSIC_NEW_DEVICE_IN:
@@ -183,7 +183,7 @@ void fm_play(void) AT(FM_CODE)
             set_memory(MEM_CHAN, fm_mode_var.bFreChannel);
             fm_module_mute(0);
             UI_menu(MENU_FM_CHANNEL);
-            UI_menu(MENU_MUTE);            
+            UI_menu(MENU_MUTE);
             break;
 
         case MSG_CH_SAVE:

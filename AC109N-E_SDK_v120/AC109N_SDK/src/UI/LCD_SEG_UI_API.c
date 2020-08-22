@@ -159,7 +159,7 @@ _near_func void UI_menu_api(u8 menu) AT (COMMON_CODE)
     LCD_drive5X9_12();
 }
 
-#else defined LCD_BL55072
+#else if defined LCD_BL55072
 
 #include "msg.h"
 #include "get_music_file.h"

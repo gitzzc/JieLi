@@ -193,7 +193,7 @@ u8 device_init(u8 dev) AT(GET_DEVICE)
         }
         else
         {
-            u8 retry, res;
+            //u8 retry, res;
             //my_puts("SD init...");
 #if (defined (SDMMCA_EN) || defined (SDMMCB_EN))
             for(retry = 0; retry < 3; retry++)
@@ -212,7 +212,7 @@ u8 device_init(u8 dev) AT(GET_DEVICE)
 #endif
 
             //my_puts("sd ok\n");
-            SD_CON1 |= BIT(6);
+            //SD_CON1 |= BIT(6);
         }
 
         f_init(disk_read_table[dev], pkt_size);
