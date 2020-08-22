@@ -13,11 +13,17 @@ typedef unsigned int  uint16_t;
 typedef   signed int  int16_t;
 typedef unsigned long uint32_t;
 
-
-const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
-const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
-//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
-const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,641,651,661,671,681,691,701,711,720,0xFFFF};	//V1.18
+#ifdef BIKE_TIANJINFENGCHI
+	const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,420,432,432,444,444,456,456,468,468,0xFFFF};
+	const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,520,536,536,552,552,568,568,584,584,0xFFFF};	//V1.16
+	//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
+	const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,641,651,661,671,681,691,701,711,720,0xFFFF};	//V1.18
+#else
+	const unsigned int  BatStatus48[] AT(BIKE_TABLE_CODE) = {420,427,432,439,444,448,455,459,466,470,0xFFFF};
+	const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {520,526,533,540,547,553,560,566,574,580,0xFFFF};	//V1.16
+	//const unsigned int  BatStatus60[] AT(BIKE_TABLE_CODE) = {480,496,509,522,535,548,561,574,587,600,0xFFFF};	//V1.17
+	const unsigned int  BatStatus72[] AT(BIKE_TABLE_CODE) = {630,641,651,661,671,681,691,701,711,720,0xFFFF};	//V1.18
+#endif
 
 unsigned int _xdata tick_100ms=0;
 unsigned int _xdata speed_buf[16];
@@ -291,6 +297,9 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
     //deg("vol %u\n",vol);
 	
 	if ( sConfig.uiSysVoltage	== 48 ){
+#ifdef BIKE_TIANJINFENGCHI
+		speed = (unsigned long)vol*16356UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*38 KM/H
+#elif
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
       } else if ( vol < 240 ){
@@ -298,8 +307,11 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
       } else/* if ( vol < 270 )*/{
 		speed = (unsigned long)vol*18364UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/27V*48 KM/H
       }
+#endif
 	} else if ( sConfig.uiSysVoltage	== 60 ) {
-#ifdef BIKE_48_60_FM_BANPENG
+#ifdef BIKE_TIANJINFENGCHI
+		speed = (unsigned long)vol*15495UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*45 KM/H
+#elif BIKE_48_60_FM_BANPENG
 		speed = (unsigned long)vol*16528UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/25V*40 KM/H
 #elif defined BIKE_JINGPENG_GOUBIAO
 		speed = (unsigned long)vol*18938UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*55 KM/H

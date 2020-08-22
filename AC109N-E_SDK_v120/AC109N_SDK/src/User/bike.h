@@ -8,6 +8,9 @@
   ******************************************************************************
   * @Changlog
   *
+  * V1.23 - 20200424
+  * 增加BIKE_TIANJINGFENGCHI 天津风驰汽车配件有限公司车型定义，需要改成48V系统对应24V电压对应38km,60V系统对应30V电压对应45km,电池格改成5格显示；；
+  *
   * V1.22 - 20200421
   * 增加BIKE_JINGPENG_GOUBIAO 金彭国标车型定义，需要改成60V系统对应30V电压对应55km,72V系统对应35V电压对应55km,改正72V系统速度计算错误；
   *
@@ -79,10 +82,12 @@
 #define RESET_MILE_ENABLE
 
 /******************************************************************************/
-#define VOL6072
+//#define VOL6072
 #define STARTUP_OFF_MODE
+
 //#define BIKE_48_60_FM_BANPENG	//48/60Fm半篷
-#define BIKE_JINGPENG_GOUBIAO
+//#define BIKE_JINGPENG_GOUBIAO
+#define BIKE_TIANJINFENGCHI
 /******************************************************************************/
 
 #define BIKE_EEPROM_START   0x80
