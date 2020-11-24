@@ -8,6 +8,9 @@
   ******************************************************************************
   * @Changlog
   *
+  * V1.25 - 20200906
+  * 修正V1.24逻辑，增加BIKE_48_60_72，BIKE_48_60_72_GUOBIAO两种速度标定。
+  *
   * V1.24 - 20200822
   * 修改系统电压判断逻辑，电压选择线对插（=0）是60V系统，系统电压低于60V，断开是48系统，电压高于60V，断开是72V系统。删除VOL6072定义。
   *
@@ -85,10 +88,13 @@
 #define RESET_MILE_ENABLE
 
 /******************************************************************************/
-//#define STARTUP_OFF_MODE
+#define STARTUP_OFF_MODE
+
+//#define BIKE_48_60_72
+#define BIKE_48_60_72_GUOBIAO
 
 //#define BIKE_48_60_FM_BANPENG	//48/60Fm半篷
-#define BIKE_JINGPENG_GOUBIAO
+//#define BIKE_JINGPENG_GOUBIAO
 //#define BIKE_TIANJINFENGCHI
 /******************************************************************************/
 
@@ -195,6 +201,7 @@ extern BIKE_STATUS sBike;
 extern BIKE_CONFIG sConfig;
 
 unsigned char GetVolStabed(unsigned int* vol);
+int GetVol(void);
 unsigned int Get_SysTick(void);
 unsigned int Get_ElapseTick(unsigned int pre_tick);
 void bike_task(void);

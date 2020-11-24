@@ -89,7 +89,7 @@ void InitConfig(void) AT(BIKE_CODE)
 {
 	uint8_t *cbuf = (uint8_t *)&sConfig;
 	uint8_t i,sum;
-	unsigned int vol;
+//	unsigned int vol;
 
 	for(i=0;i<sizeof(BIKE_CONFIG);i++)
 		cbuf[i] = get_memory(BIKE_EEPROM_START + i);
@@ -127,20 +127,19 @@ void InitConfig(void) AT(BIKE_CODE)
     sBike.bVolFlash = 0;
     sBike.uiShowFileNO = 2;  //2s
 	
-    P3PU    &=~BIT(3);
-    P3PD    &=~BIT(3);
-    P3DIE   |= BIT(3);
-    P3DIR   |= BIT(3);
-
-	if ( P33 == 0 ){
-		sConfig.uiSysVoltage = 60;
-	} else {
-		GetVolStabed(&vol);
-		if ( vol < 550 )
-			sConfig.uiSysVoltage = 48;
-		else
-			sConfig.uiSysVoltage = 72;
-    }
+//    P3PU    &=~BIT(3);
+//    P3PD    &=~BIT(3);
+//    P3DIE   |= BIT(3);
+//    P3DIR   |= BIT(3);
+//
+//	if ( P33 == 0 ){
+//		sConfig.uiSysVoltage = 60;
+//	} else {
+//		if ( GetVol() < 600 )
+//			sConfig.uiSysVoltage = 48;
+//		else
+//			sConfig.uiSysVoltage = 72;
+//    }
 }
 
 unsigned char GetBatStatus(unsigned int uiVol) AT(BIKE_CODE)
@@ -300,6 +299,10 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	if ( sConfig.uiSysVoltage	== 48 ){
 #ifdef BIKE_TIANJINFENGCHI
 		speed = (unsigned long)vol*16356UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*38 KM/H
+#elif defined BIKE_48_60_72
+		speed = (unsigned long)vol*18508UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*43 KM/H
+#elif defined BIKE_48_60_72_GUOBIAO
+		speed = (unsigned long)vol*21951UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/24V*51 KM/H
 #else
       if ( vol < 210 ){
 		speed = (unsigned long)vol*182UL/1024UL;        //ADC/1024*103.3/3.3*3.3V/21V*37 KM/H
@@ -312,6 +315,10 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	} else if ( sConfig.uiSysVoltage	== 60 ) {
 #ifdef BIKE_TIANJINFENGCHI
 		speed = (unsigned long)vol*15495UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/30V*45 KM/H
+#elif defined BIKE_48_60_72
+		speed = (unsigned long)vol*16184UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/30V*47 KM/H
+#elif defined BIKE_48_60_72_GUOBIAO
+		speed = (unsigned long)vol*18250UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/30V*53 KM/H
 #elif defined BIKE_48_60_FM_BANPENG
 		speed = (unsigned long)vol*16528UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/25V*40 KM/H
 #elif defined BIKE_JINGPENG_GOUBIAO
@@ -328,6 +335,10 @@ unsigned char GetSpeed(void) AT(BIKE_CODE)
 	} else if ( sConfig.uiSysVoltage	== 72 ) {
 #ifdef BIKE_JINGPENG_GOUBIAO
 	  speed = (unsigned long)vol*16233UL/102400UL;     //ADC/1024*103.3/3.3*3.3V/35V*55 KM/H
+#elif defined BIKE_48_60_72
+		speed = (unsigned long)vol*13486UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/36V*47 KM/H
+#elif defined BIKE_48_60_72_GUOBIAO
+		speed = (unsigned long)vol*15208UL/102400UL;    //ADC/1024*103.3/3.3*3.3V/36V*53 KM/H
 #else
       if ( vol < 260 ){
 		speed = (unsigned long)vol*12462UL/102400UL;   //ADC/1024*103.3/3.3*3.3V/31.5V*38 KM/H
@@ -916,9 +927,22 @@ void bike_task(void) AT(BIKE_CODE)
 		//sBike.HasTimer = !PCF8563_Check();
 		//sBike.HasTimer = PCF8563_GetTime(PCF_Format_BIN,&RtcTime);
 	#endif
-  	
-		GetVolStabed(&uiVol);
-		sBike.uiVoltage 	= (unsigned long)uiVol*1000UL/sConfig.uiVolScale;
+
+	    P3PU    &=~BIT(3);
+	    P3PD    &=~BIT(3);
+	    P3DIE   |= BIT(3);
+	    P3DIR   |= BIT(3);
+
+		if ( P33 == 0 ){
+			sConfig.uiSysVoltage = 60;
+		} else {
+			if ( (unsigned long)uiVol*1000UL/sConfig.uiVolScale < 600 )
+				sConfig.uiSysVoltage = 48;
+			else
+				sConfig.uiSysVoltage = 72;
+	    }
+
+		sBike.uiVoltage  = (unsigned long)uiVol*1000UL/sConfig.uiVolScale;
 		sBike.ucBatStatus= GetBatStatus(sBike.uiVoltage);
 
 		if ( sBike.bHotReset == 0 ) {
